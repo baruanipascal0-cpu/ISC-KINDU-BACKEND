@@ -32,7 +32,7 @@ Espace administrateur:
 http://127.0.0.1:8000/admin/login
 ```
 
-## Comptes demo
+## Comptes locaux initiaux
 
 ```text
 Admin:    admin@isc-kindu.test / password

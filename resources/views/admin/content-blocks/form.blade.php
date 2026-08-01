@@ -1,7 +1,7 @@
 @extends('admin.layout')
 
 @section('title', $block->exists ? 'Modifier un bloc' : 'Nouveau bloc')
-@section('subtitle', 'Ces donnees remplacent les textes demo des cartes du site')
+@section('subtitle', 'Ces donnees remplacent les cartes et textes publics du site')
 
 @section('content')
     <form class="card" method="post" enctype="multipart/form-data" action="{{ $block->exists ? route('admin.content-blocks.update', $block) : route('admin.content-blocks.store') }}">

@@ -38,7 +38,7 @@
                     Garder la session ouverte
                 </label>
                 <button class="btn btn-primary" type="submit">Se connecter</button>
-                <p class="muted">Compte demo: admin@isc-kindu.test / password</p>
+                <p class="muted">Compte local initial: admin@isc-kindu.test / password</p>
             </form>
         </section>
     </main>

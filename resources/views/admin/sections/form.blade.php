@@ -33,7 +33,7 @@
             </div>
             <div class="field full">
                 <label for="programs_text">Filieres</label>
-                <textarea id="programs_text" name="programs_text" style="min-height: 260px;" placeholder="Comptabilite et finances | Licence | Description demo">{{ old('programs_text', $programsText) }}</textarea>
+                <textarea id="programs_text" name="programs_text" style="min-height: 260px;" placeholder="Comptabilite et finances | Licence | Description a completer">{{ old('programs_text', $programsText) }}</textarea>
                 <p class="muted">Les lignes existantes sont creees ou mises a jour automatiquement.</p>
             </div>
         </div>

@@ -101,7 +101,7 @@ class SectionController extends Controller
                         'section_id' => $section->id,
                         'name' => $name,
                         'cycle' => $cycle ?: 'Licence',
-                        'description' => $description ?: 'Description demo a remplacer.',
+                        'description' => $description ?: 'Description a completer.',
                         'is_active' => true,
                     ]
                 );
