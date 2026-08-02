@@ -24,4 +24,16 @@ class AdminPanelTest extends TestCase
             ->assertSee('Tableau de bord')
             ->assertSee('Actualites');
     }
+
+    public function test_admin_login_keeps_secure_urls_behind_render_proxy(): void
+    {
+        $this->withHeaders([
+            'X-Forwarded-Proto' => 'https',
+            'X-Forwarded-Host' => 'isc-kindu-backend.onrender.com',
+            'X-Forwarded-Port' => '443',
+        ])->get('/admin/login')
+            ->assertOk()
+            ->assertSee('https://isc-kindu-backend.onrender.com/admin-assets/admin.css', false)
+            ->assertSee('action="https://isc-kindu-backend.onrender.com/admin/login"', false);
+    }
 }

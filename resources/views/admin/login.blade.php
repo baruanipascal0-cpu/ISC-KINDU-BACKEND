@@ -4,13 +4,13 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Connexion admin | ISC KINDU</title>
-    <link rel="stylesheet" href="{{ asset('admin-assets/admin.css') }}">
+    <link rel="stylesheet" href="{{ secure_asset('admin-assets/admin.css') }}">
 </head>
 <body>
     <main class="login-page">
         <section class="login-card">
             <div class="login-logo">
-                <img src="{{ asset('images/site/logo.jpg') }}" alt="ISC KINDU">
+                <img src="{{ secure_asset('images/site/logo.jpg') }}" alt="ISC KINDU">
                 <div>
                     <strong>ISC KINDU</strong>
                     <span>Espace administrateur</span>
@@ -38,7 +38,7 @@
                     Garder la session ouverte
                 </label>
                 <button class="btn btn-primary" type="submit">Se connecter</button>
-                <p class="muted">Compte local initial: admin@isc-kindu.test / password</p>
+                <p class="muted">Connectez-vous avec le compte administrateur configure dans Render.</p>
             </form>
         </section>
     </main>

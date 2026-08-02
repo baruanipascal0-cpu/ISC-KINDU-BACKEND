@@ -4,13 +4,13 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title', 'Administration') | ISC KINDU</title>
-    <link rel="stylesheet" href="{{ asset('admin-assets/admin.css') }}">
+    <link rel="stylesheet" href="{{ secure_asset('admin-assets/admin.css') }}">
 </head>
 <body>
     <div class="admin-shell">
         <aside class="sidebar">
             <a class="brand" href="{{ route('admin.dashboard') }}">
-                <img src="{{ asset('images/site/logo.jpg') }}" alt="ISC KINDU">
+                <img src="{{ secure_asset('images/site/logo.jpg') }}" alt="ISC KINDU">
                 <span>
                     <strong>ISC KINDU</strong>
                     <span>Administration</span>
