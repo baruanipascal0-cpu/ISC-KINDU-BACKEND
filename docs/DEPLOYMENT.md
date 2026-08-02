@@ -59,28 +59,35 @@ APP_ENV=production
 APP_DEBUG=false
 APP_KEY=base64:...
 APP_URL=https://votre-backend.onrender.com
-DB_CONNECTION=mysql
-DB_HOST=...
-DB_PORT=3306
-DB_DATABASE=...
-DB_USERNAME=...
-DB_PASSWORD=...
+DB_CONNECTION=pgsql
+DATABASE_URL=postgresql://...
+DB_SSLMODE=require
 SESSION_DRIVER=database
 CACHE_STORE=database
 QUEUE_CONNECTION=database
 FILESYSTEM_DISK=public
 LOG_CHANNEL=stderr
 RUN_MIGRATIONS=true
+RUN_SEEDERS=true
+ADMIN_EMAIL=admin@isc-kindu.test
+ADMIN_PASSWORD=mot-de-passe-admin-fort
 CORS_ALLOWED_ORIGINS=https://isc-kindu-frontend.baruanipascal0.workers.dev
 ```
 
-Si vous utilisez la base PostgreSQL de Render, remplacer les lignes `DB_*` par:
+Pour MySQL externe, utiliser plutot:
 
 ```text
-DB_CONNECTION=pgsql
-DB_URL=postgresql://...
-DB_SSLMODE=require
+DB_CONNECTION=mysql
+DB_HOST=...
+DB_PORT=3306
+DB_DATABASE=...
+DB_USERNAME=...
+DB_PASSWORD=...
 ```
+
+Le backend accepte aussi `DB_URL`, mais Render documente `DATABASE_URL` pour Laravel/Docker. Si vous liez un **Environment Group**, verifier que le service ne garde pas d'anciennes variables individuelles comme `DB_CONNECTION=mysql`, `DB_URL`, `DB_HOST`, `DB_DATABASE`, `DB_USERNAME` ou `DB_PASSWORD`: les variables definies directement sur le service ont priorite sur celles du groupe.
+
+Quand vous utilisez l'URL interne Render PostgreSQL, placer le service web et la base dans la meme region Render. Dans un projet Render avec environnements proteges, la base et le service doivent aussi etre dans le meme environnement pour que le reseau prive fonctionne.
 
 Render fournit automatiquement la variable `PORT`; le script `scripts/render-start.sh` configure Apache pour l'utiliser.
 
@@ -88,9 +95,12 @@ Apres le premier deploiement, verifier:
 
 ```text
 /up
+/api/health
 /api/site/settings
 /api/news
 /admin/login
 ```
+
+`/api/health` doit retourner `database.status=ok` et `database.admin_exists=true`. Si `admin_exists=false`, verifier `RUN_SEEDERS=true`, `ADMIN_EMAIL` et `ADMIN_PASSWORD`, puis redeployer.
 
 Les fichiers envoyes depuis l'administration sont stockes dans `storage/app/public`. Pour une production durable, utiliser un disque persistant Render ou un stockage externe, sinon ces fichiers peuvent disparaitre lors d'un redeploiement selon le type d'offre.

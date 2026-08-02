@@ -325,19 +325,33 @@ class DatabaseSeeder extends Seeder
 
     private function seedUsersAndStudentWallet(): void
     {
+        $adminPassword = env('ADMIN_PASSWORD');
+
         $admin = User::firstOrCreate(
-            ['email' => 'admin@isc-kindu.test'],
+            ['email' => env('ADMIN_EMAIL', 'admin@isc-kindu.test')],
             [
-                'name' => 'Administrateur ISC KINDU',
-                'first_name' => 'Admin',
-                'last_name' => 'ISC KINDU',
-                'phone' => '+243000000001',
+                'name' => env('ADMIN_NAME', 'Administrateur ISC KINDU'),
+                'first_name' => env('ADMIN_FIRST_NAME', 'Admin'),
+                'last_name' => env('ADMIN_LAST_NAME', 'ISC KINDU'),
+                'phone' => env('ADMIN_PHONE', '+243000000001'),
                 'role' => 'admin',
                 'status' => 'active',
                 'institution_code' => 'ISC_KINDU',
-                'password' => 'password',
+                'password' => $adminPassword ?: 'password',
             ]
         );
+
+        $admin->forceFill([
+            'role' => 'admin',
+            'status' => 'active',
+            'institution_code' => 'ISC_KINDU',
+        ]);
+
+        if ($adminPassword) {
+            $admin->password = $adminPassword;
+        }
+
+        $admin->save();
 
         if (! app()->environment('testing')) {
             $admin->tokens()->delete();

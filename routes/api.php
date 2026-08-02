@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\AdmissionController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\ContentController;
+use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\StudentController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -12,6 +13,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
+
+Route::get('/health', HealthController::class);
 
 Route::get('/site/settings', [ContentController::class, 'settings']);
 Route::get('/site/menus', [ContentController::class, 'menus']);

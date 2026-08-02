@@ -9,6 +9,18 @@ class IscKinduApiTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_health_endpoint_reports_database_and_admin_status(): void
+    {
+        $this->seed();
+
+        $this->getJson('/api/health')
+            ->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('data.status', 'ok')
+            ->assertJsonPath('data.database.status', 'ok')
+            ->assertJsonPath('data.database.admin_exists', true);
+    }
+
     public function test_public_api_returns_isc_demo_content(): void
     {
         $this->seed();

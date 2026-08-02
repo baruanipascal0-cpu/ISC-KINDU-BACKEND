@@ -58,6 +58,8 @@ DB_USERNAME=root
 DB_PASSWORD=
 ```
 
+Sur Render avec PostgreSQL, utiliser `DB_CONNECTION=pgsql` et `DATABASE_URL` avec l'URL interne de la base Render. Le backend accepte aussi `DB_URL`, mais `DATABASE_URL` est le nom attendu par le guide Render Laravel/Docker.
+
 Puis lancer:
 
 ```bash
@@ -65,6 +67,14 @@ php artisan migrate --seed
 ```
 
 Le guide complet est dans `docs/DEPLOYMENT.md`.
+
+Pour verifier Render apres un deploiement:
+
+```text
+https://votre-backend.onrender.com/api/health
+```
+
+La reponse doit indiquer `database.status=ok` et `database.admin_exists=true`.
 
 ## Routes principales
 
