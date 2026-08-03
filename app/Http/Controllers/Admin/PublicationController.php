@@ -72,7 +72,7 @@ class PublicationController extends Controller
             'title' => ['required', 'string', 'max:190'],
             'slug' => ['nullable', 'string', 'max:190'],
             'type' => ['nullable', 'string', 'max:120'],
-            'description' => ['nullable', 'string', 'max:2000'],
+            'description' => ['nullable', 'string'],
             'file_url' => ['nullable', 'string', 'max:500'],
             'file' => ['nullable', 'file', 'max:10240'],
             'published_at' => ['nullable', 'date'],

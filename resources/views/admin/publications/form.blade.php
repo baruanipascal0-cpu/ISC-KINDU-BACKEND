@@ -31,8 +31,8 @@
                 <input id="published_at" name="published_at" type="datetime-local" value="{{ old('published_at', optional($publication->published_at)->format('Y-m-d\TH:i')) }}">
             </div>
             <div class="field full">
-                <label for="description">Description</label>
-                <textarea id="description" name="description">{{ old('description', $publication->description) }}</textarea>
+                <label for="description">Description detaillee</label>
+                <textarea id="description" name="description" style="min-height: 220px;">{{ old('description', $publication->description) }}</textarea>
             </div>
             <div class="field">
                 <label for="file">Fichier</label>

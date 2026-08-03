@@ -56,7 +56,7 @@ class EventController extends Controller
         $data = $request->validate([
             'title' => ['required', 'string', 'max:190'],
             'slug' => ['nullable', 'string', 'max:190'],
-            'description' => ['nullable', 'string', 'max:2000'],
+            'description' => ['nullable', 'string'],
             'location' => ['nullable', 'string', 'max:190'],
             'starts_at' => ['nullable', 'date'],
             'ends_at' => ['nullable', 'date'],

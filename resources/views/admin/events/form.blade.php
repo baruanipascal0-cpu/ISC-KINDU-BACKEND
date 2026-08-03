@@ -35,8 +35,8 @@
                 <input id="image_file" name="image_file" type="file" accept="image/*">
             </div>
             <div class="field full">
-                <label for="description">Description</label>
-                <textarea id="description" name="description">{{ old('description', $event->description) }}</textarea>
+                <label for="description">Description detaillee</label>
+                <textarea id="description" name="description" style="min-height: 220px;">{{ old('description', $event->description) }}</textarea>
             </div>
             <div class="field">
                 <label for="image_url">Ou URL image</label>
