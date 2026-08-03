@@ -111,6 +111,19 @@ Pour conserver les photos et documents, ajouter un disque persistant au service 
 
 ```text
 FILESYSTEM_DISK=public
+MEDIA_DISK=public
 PUBLIC_STORAGE_PATH=/var/data/storage
 PUBLIC_STORAGE_URL=https://votre-backend.onrender.com/storage
+```
+
+Pour un stockage externe persistant, configurer Cloudflare R2 et remplacer `MEDIA_DISK=public` par:
+
+```text
+MEDIA_DISK=r2
+R2_ACCESS_KEY_ID=...
+R2_SECRET_ACCESS_KEY=...
+R2_BUCKET=isc-kindu-media
+R2_ENDPOINT=https://ACCOUNT_ID.r2.cloudflarestorage.com
+R2_PUBLIC_URL=https://media.votre-domaine.tld
+R2_REGION=auto
 ```

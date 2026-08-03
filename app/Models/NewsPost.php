@@ -13,6 +13,9 @@ class NewsPost extends Model
         'excerpt',
         'body',
         'image_url',
+        'image_public_id',
+        'image_disk',
+        'image_alt',
         'published_at',
         'is_published',
     ];

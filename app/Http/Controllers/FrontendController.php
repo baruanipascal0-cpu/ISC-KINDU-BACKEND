@@ -69,15 +69,6 @@ class FrontendController extends Controller
             return 'diplomes.html';
         }
 
-        if (in_array($path, [
-            'presentation-de-lisc-kindu.html',
-            'conseil-administration.html',
-            'directeur-general.html',
-            'conseil-de-section.html',
-        ], true)) {
-            return 'articles.html';
-        }
-
         return null;
     }
 

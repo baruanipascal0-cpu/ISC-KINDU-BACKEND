@@ -35,6 +35,18 @@
                 <textarea id="description" name="description" style="min-height: 220px;">{{ old('description', $publication->description) }}</textarea>
             </div>
             <div class="field">
+                <label for="image_file">Image de couverture</label>
+                <input id="image_file" name="image_file" type="file" accept="image/*">
+            </div>
+            <div class="field">
+                <label for="image_url">Ou URL image</label>
+                <input id="image_url" name="image_url" value="{{ old('image_url', $publication->image_url) }}">
+            </div>
+            <div class="field">
+                <label for="image_alt">Texte alternatif image</label>
+                <input id="image_alt" name="image_alt" value="{{ old('image_alt', $publication->image_alt) }}">
+            </div>
+            <div class="field">
                 <label for="file">Fichier</label>
                 <input id="file" name="file" type="file">
             </div>

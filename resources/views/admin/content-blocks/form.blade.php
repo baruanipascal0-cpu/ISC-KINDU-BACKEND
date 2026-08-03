@@ -37,11 +37,15 @@
             </div>
             <div class="field">
                 <label for="image_file">Image</label>
-                <input id="image_file" name="image_file" type="file">
+                <input id="image_file" name="image_file" type="file" accept="image/*">
             </div>
             <div class="field">
                 <label for="image_url">Ou URL image</label>
                 <input id="image_url" name="image_url" value="{{ old('image_url', $block->image_url) }}">
+            </div>
+            <div class="field">
+                <label for="image_alt">Texte alternatif image</label>
+                <input id="image_alt" name="image_alt" value="{{ old('image_alt', $block->image_alt) }}">
             </div>
             <div class="field">
                 <label for="link_url">Lien</label>

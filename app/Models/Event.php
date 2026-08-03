@@ -14,6 +14,9 @@ class Event extends Model
         'starts_at',
         'ends_at',
         'image_url',
+        'image_public_id',
+        'image_disk',
+        'image_alt',
         'is_published',
     ];
 

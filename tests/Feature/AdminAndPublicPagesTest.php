@@ -41,5 +41,16 @@ class AdminAndPublicPagesTest extends TestCase
         $this->get('/publications/debut')
             ->assertOk()
             ->assertSee('<base href="/">', false);
+
+        $this->get('/evenements/debut')
+            ->assertOk()
+            ->assertSee('<base href="/">', false);
+    }
+
+    public function test_institution_pages_keep_their_own_frontend_template(): void
+    {
+        $this->get('/presentation-de-lisc-kindu.html')
+            ->assertOk()
+            ->assertDontSee('Articles de recherche');
     }
 }

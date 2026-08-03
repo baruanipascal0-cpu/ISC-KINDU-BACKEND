@@ -34,6 +34,10 @@
                 <label for="image_file">Ou image</label>
                 <input id="image_file" name="image_file" type="file" accept="image/*">
             </div>
+            <div class="field">
+                <label for="image_alt">Texte alternatif image</label>
+                <input id="image_alt" name="image_alt" value="{{ old('image_alt', $page->image_alt) }}">
+            </div>
             <label class="checkbox-row">
                 <input type="checkbox" name="is_published" value="1" @checked(old('is_published', $page->is_published))>
                 Publier sur le site

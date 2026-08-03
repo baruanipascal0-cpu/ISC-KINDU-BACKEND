@@ -89,7 +89,8 @@ class ContentController extends ApiController
 
         $slides = NewsPost::query()
             ->where('is_published', true)
-            ->latest('published_at')
+            ->orderByDesc('published_at')
+            ->orderByDesc('id')
             ->take(3)
             ->get()
             ->map(fn (NewsPost $post) => [
@@ -198,7 +199,8 @@ class ContentController extends ApiController
         $posts = NewsPost::query()
             ->where('is_published', true)
             ->when($request->query('category'), fn ($query, string $category) => $query->where('category', $category))
-            ->latest('published_at')
+            ->orderByDesc('published_at')
+            ->orderByDesc('id')
             ->paginate($this->perPage($request))
             ->through(fn (NewsPost $post) => $this->withMedia($post->toArray()));
 
@@ -232,7 +234,8 @@ class ContentController extends ApiController
         $items = Publication::query()
             ->where('is_published', true)
             ->when($request->query('type'), fn ($query, string $type) => $query->where('type', $type))
-            ->latest('published_at')
+            ->orderByDesc('published_at')
+            ->orderByDesc('id')
             ->paginate($this->perPage($request))
             ->through(fn (Publication $publication) => $this->withMedia($publication->toArray()));
 
@@ -259,7 +262,8 @@ class ContentController extends ApiController
             ->when($request->query('section_id'), fn ($query, string $id) => $query->where('section_id', $id))
             ->when($request->query('program_id'), fn ($query, string $id) => $query->where('program_id', $id))
             ->when($request->query('promotion_id'), fn ($query, string $id) => $query->where('promotion_id', $id))
-            ->latest('published_at')
+            ->orderByDesc('published_at')
+            ->orderByDesc('id')
             ->paginate($this->perPage($request))
             ->through(fn (GraduationList $list) => $this->graduationListResource($list));
 
@@ -288,7 +292,11 @@ class ContentController extends ApiController
         $items = Event::query()
             ->where('is_published', true)
             ->when($request->boolean('upcoming'), fn ($query) => $query->where('starts_at', '>=', now()))
-            ->orderBy('starts_at')
+            ->when(
+                $request->boolean('upcoming'),
+                fn ($query) => $query->orderBy('starts_at')->orderByDesc('id'),
+                fn ($query) => $query->orderByDesc('starts_at')->orderByDesc('id')
+            )
             ->paginate($this->perPage($request))
             ->through(fn (Event $event) => $this->withMedia($event->toArray()));
 

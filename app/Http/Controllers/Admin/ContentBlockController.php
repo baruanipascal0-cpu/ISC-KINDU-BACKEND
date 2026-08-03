@@ -74,8 +74,10 @@ class ContentBlockController extends Controller
 
     public function update(Request $request, ContentBlock $contentBlock): RedirectResponse
     {
+        $oldImage = PublicUpload::imageFrom($contentBlock);
         $payload = $this->payload($request, $contentBlock);
         $contentBlock->update($payload);
+        PublicUpload::deleteIfReplaced($oldImage, PublicUpload::imageFrom($contentBlock));
 
         return redirect()
             ->route('admin.content-blocks.index', ['group' => $payload['block_group']])
@@ -84,7 +86,9 @@ class ContentBlockController extends Controller
 
     public function destroy(ContentBlock $contentBlock): RedirectResponse
     {
+        $image = PublicUpload::imageFrom($contentBlock);
         $contentBlock->delete();
+        PublicUpload::delete($image['image_disk'], $image['image_public_id']);
 
         return back()->with('status', 'Bloc supprime.');
     }
@@ -98,7 +102,8 @@ class ContentBlockController extends Controller
             'subtitle' => ['nullable', 'string', 'max:500'],
             'body' => ['nullable', 'string'],
             'image_url' => ['nullable', 'string', 'max:500'],
-            'image_file' => ['nullable', 'file', 'max:5120'],
+            'image_file' => ['nullable', 'image', 'max:5120'],
+            'image_alt' => ['nullable', 'string', 'max:190'],
             'link_url' => ['nullable', 'string', 'max:500'],
             'link_label' => ['nullable', 'string', 'max:120'],
             'icon' => ['nullable', 'string', 'max:80'],
@@ -107,11 +112,7 @@ class ContentBlockController extends Controller
             'is_active' => ['nullable', 'boolean'],
         ]);
 
-        $imageUrl = $data['image_url'] ?? $block?->image_url;
-
-        if ($request->hasFile('image_file')) {
-            $imageUrl = PublicUpload::store($request->file('image_file'), 'content/blocks');
-        }
+        $image = $this->imagePayload($request, $data, $block);
 
         return [
             'block_group' => $data['block_group'],
@@ -119,7 +120,10 @@ class ContentBlockController extends Controller
             'title' => $data['title'] ?? null,
             'subtitle' => $data['subtitle'] ?? null,
             'body' => $data['body'] ?? null,
-            'image_url' => $imageUrl,
+            'image_url' => $image['image_url'],
+            'image_public_id' => $image['image_public_id'],
+            'image_disk' => $image['image_disk'],
+            'image_alt' => $image['image_alt'],
             'link_url' => $data['link_url'] ?? null,
             'link_label' => $data['link_label'] ?? null,
             'icon' => $data['icon'] ?? null,
@@ -127,6 +131,24 @@ class ContentBlockController extends Controller
             'sort_order' => $data['sort_order'] ?? 0,
             'is_active' => $request->boolean('is_active'),
         ];
+    }
+
+    private function imagePayload(Request $request, array $data, ?ContentBlock $block): array
+    {
+        $alt = $data['image_alt'] ?? $data['title'] ?? null;
+
+        if ($request->hasFile('image_file')) {
+            return PublicUpload::storeImage($request->file('image_file'), 'content/blocks', $alt);
+        }
+
+        if (! empty($data['image_url'])) {
+            return PublicUpload::externalImage($data['image_url'], $alt);
+        }
+
+        $current = PublicUpload::imageFrom($block);
+        $current['image_alt'] = $alt ?: ($current['image_alt'] ?? null);
+
+        return $current;
     }
 
     private function uniqueKey(string $group, string $title, ?ContentBlock $ignore = null): string
