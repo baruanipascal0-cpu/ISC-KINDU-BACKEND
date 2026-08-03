@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\NewsPost;
+use App\Support\PublicUpload;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -68,7 +69,7 @@ class NewsController extends Controller
         $imageUrl = $data['image_url'] ?? $post?->image_url;
 
         if ($request->hasFile('image_file')) {
-            $imageUrl = '/storage/'.$request->file('image_file')->store('content/news', 'public');
+            $imageUrl = PublicUpload::store($request->file('image_file'), 'content/news');
         }
 
         return [

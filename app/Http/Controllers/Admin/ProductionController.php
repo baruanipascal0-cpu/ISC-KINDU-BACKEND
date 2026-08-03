@@ -24,6 +24,8 @@ class ProductionController extends Controller
             ],
             'Stockage' => [
                 'Disque public' => Storage::disk('public')->exists('.') ? 'accessible' : 'a verifier',
+                'Chemin public' => config('filesystems.disks.public.root'),
+                'URL publique' => config('filesystems.disks.public.url'),
                 'Lien storage' => is_link(public_path('storage')) ? 'present' : 'a creer avec php artisan storage:link',
             ],
         ];

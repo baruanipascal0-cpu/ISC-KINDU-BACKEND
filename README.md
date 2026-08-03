@@ -60,6 +60,24 @@ DB_PASSWORD=
 
 Sur Render avec PostgreSQL, utiliser `DB_CONNECTION=pgsql` et `DATABASE_URL` avec l'URL interne de la base Render. Le backend accepte aussi `DB_URL`, mais `DATABASE_URL` est le nom attendu par le guide Render Laravel/Docker.
 
+## Photos et fichiers sur Render
+
+Les images et documents envoyes depuis l admin sont conserves dans le disque public Laravel. Sur Render, le systeme de fichiers est ephemere sans disque persistant: les fichiers uploades peuvent disparaitre apres un redemarrage ou un redeploiement.
+
+Pour conserver les uploads, ajoutez un disque persistant au service backend avec le chemin de montage:
+
+```text
+/var/data
+```
+
+Puis ajoutez ces variables dans l environnement Render:
+
+```text
+FILESYSTEM_DISK=public
+PUBLIC_STORAGE_PATH=/var/data/storage
+PUBLIC_STORAGE_URL=https://isc-kindu-backend.onrender.com/storage
+```
+
 Puis lancer:
 
 ```bash

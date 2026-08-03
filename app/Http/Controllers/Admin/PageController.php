@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Page;
+use App\Support\PublicUpload;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -59,17 +60,23 @@ class PageController extends Controller
             'excerpt' => ['nullable', 'string', 'max:1000'],
             'body' => ['nullable', 'string'],
             'image_url' => ['nullable', 'string', 'max:500'],
+            'image_file' => ['nullable', 'file', 'max:5120'],
             'is_published' => ['nullable', 'boolean'],
         ]);
 
         $slug = $data['slug'] ?: Str::slug($data['title']);
+        $imageUrl = $data['image_url'] ?? $page?->image_url;
+
+        if ($request->hasFile('image_file')) {
+            $imageUrl = PublicUpload::store($request->file('image_file'), 'content/pages');
+        }
 
         return [
             'title' => $data['title'],
             'slug' => $slug,
             'excerpt' => $data['excerpt'] ?? null,
             'body' => $data['body'] ?? null,
-            'image_url' => $data['image_url'] ?? $page?->image_url,
+            'image_url' => $imageUrl,
             'is_published' => $request->boolean('is_published'),
         ];
     }

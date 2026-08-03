@@ -66,6 +66,8 @@ SESSION_DRIVER=database
 CACHE_STORE=database
 QUEUE_CONNECTION=database
 FILESYSTEM_DISK=public
+PUBLIC_STORAGE_PATH=/var/data/storage
+PUBLIC_STORAGE_URL=https://votre-backend.onrender.com/storage
 LOG_CHANNEL=stderr
 RUN_MIGRATIONS=true
 RUN_SEEDERS=true
@@ -103,4 +105,12 @@ Apres le premier deploiement, verifier:
 
 `/api/health` doit retourner `database.status=ok` et `database.admin_exists=true`. Si `admin_exists=false`, verifier `RUN_SEEDERS=true`, `ADMIN_EMAIL` et `ADMIN_PASSWORD`, puis redeployer.
 
-Les fichiers envoyes depuis l'administration sont stockes dans `storage/app/public`. Pour une production durable, utiliser un disque persistant Render ou un stockage externe, sinon ces fichiers peuvent disparaitre lors d'un redeploiement selon le type d'offre.
+Les fichiers envoyes depuis l'administration sont stockes dans le disque public Laravel. Sur Render, le systeme de fichiers est ephemere sans disque persistant: les uploads peuvent disparaitre apres un redeploiement ou un redemarrage.
+
+Pour conserver les photos et documents, ajouter un disque persistant au service backend avec le chemin de montage `/var/data`, puis garder:
+
+```text
+FILESYSTEM_DISK=public
+PUBLIC_STORAGE_PATH=/var/data/storage
+PUBLIC_STORAGE_URL=https://votre-backend.onrender.com/storage
+```

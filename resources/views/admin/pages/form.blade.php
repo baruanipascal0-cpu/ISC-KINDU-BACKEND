@@ -4,7 +4,7 @@
 @section('subtitle', 'Contenu statique publie vers le site')
 
 @section('content')
-    <form class="card" method="post" action="{{ $page->exists ? route('admin.pages.update', $page) : route('admin.pages.store') }}">
+    <form class="card" method="post" enctype="multipart/form-data" action="{{ $page->exists ? route('admin.pages.update', $page) : route('admin.pages.store') }}">
         @csrf
         @if ($page->exists)
             @method('PUT')
@@ -29,6 +29,10 @@
             <div class="field">
                 <label for="image_url">Image URL</label>
                 <input id="image_url" name="image_url" value="{{ old('image_url', $page->image_url) }}">
+            </div>
+            <div class="field">
+                <label for="image_file">Ou image</label>
+                <input id="image_file" name="image_file" type="file" accept="image/*">
             </div>
             <label class="checkbox-row">
                 <input type="checkbox" name="is_published" value="1" @checked(old('is_published', $page->is_published))>

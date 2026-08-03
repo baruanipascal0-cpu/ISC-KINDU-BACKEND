@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Publication;
+use App\Support\PublicUpload;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -82,7 +83,7 @@ class PublicationController extends Controller
         $fileUrl = $data['file_url'] ?? $publication?->file_url;
 
         if ($request->hasFile('file')) {
-            $fileUrl = '/storage/'.$request->file('file')->store('content/publications', 'public');
+            $fileUrl = PublicUpload::store($request->file('file'), 'content/publications');
         }
 
         return [

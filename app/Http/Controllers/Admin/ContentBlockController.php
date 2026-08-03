@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\ContentBlock;
+use App\Support\PublicUpload;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -109,7 +110,7 @@ class ContentBlockController extends Controller
         $imageUrl = $data['image_url'] ?? $block?->image_url;
 
         if ($request->hasFile('image_file')) {
-            $imageUrl = '/storage/'.$request->file('image_file')->store('content/blocks', 'public');
+            $imageUrl = PublicUpload::store($request->file('image_file'), 'content/blocks');
         }
 
         return [
