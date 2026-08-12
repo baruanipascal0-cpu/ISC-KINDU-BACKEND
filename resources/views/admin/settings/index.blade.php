@@ -4,18 +4,44 @@
 @section('subtitle', 'Nom, contacts, logo et ouverture des inscriptions')
 
 @section('content')
+    @php
+        $groupLabels = [
+            'general' => 'Informations institutionnelles',
+            'admissions' => 'Inscriptions',
+            'reseaux_sociaux' => 'Reseaux sociaux',
+        ];
+
+        $settingLabels = [
+            'institution.name' => 'Nom complet',
+            'institution.short_name' => 'Nom court',
+            'institution.code' => 'Code institution',
+            'institution.logo_url' => 'Logo',
+            'institution.email' => 'E-mail public',
+            'institution.phone' => 'Telephone public',
+            'institution.address' => 'Adresse publique',
+            'admissions.is_open' => 'Inscriptions ouvertes',
+            'admissions.academic_year' => 'Annee academique',
+            'social.facebook_url' => 'Facebook',
+            'social.x_url' => 'X / Twitter',
+            'social.linkedin_url' => 'LinkedIn',
+            'social.youtube_url' => 'YouTube',
+            'social.email' => 'E-mail reseaux/contact',
+        ];
+    @endphp
+
     <form class="card" method="post" action="{{ route('admin.settings.update') }}">
         @csrf
         @method('PUT')
 
         @foreach ($groups as $group => $settings)
             <div class="card-header">
-                <h2 class="card-title">{{ ucfirst($group) }}</h2>
+                <h2 class="card-title">{{ $groupLabels[$group] ?? ucfirst($group) }}</h2>
             </div>
             <div class="card-body form-grid">
                 @foreach ($settings as $setting)
                     <div class="field {{ $setting->type === 'textarea' ? 'full' : '' }}">
-                        <label for="setting-{{ $setting->id }}">{{ $setting->key }}</label>
+                        <label for="setting-{{ $setting->id }}">{{ $settingLabels[$setting->key] ?? $setting->key }}</label>
+                        <span class="muted">{{ $setting->key }}</span>
                         @if ($setting->type === 'boolean')
                             <label class="checkbox-row">
                                 <input id="setting-{{ $setting->id }}" type="checkbox" name="settings[{{ $setting->key }}]" value="1" @checked((bool) $setting->value)>
