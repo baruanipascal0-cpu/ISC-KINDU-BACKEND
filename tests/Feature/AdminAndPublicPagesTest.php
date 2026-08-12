@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class AdminAndPublicPagesTest extends TestCase
@@ -86,5 +87,16 @@ class AdminAndPublicPagesTest extends TestCase
         $this->get('/presentation-de-lisc-kindu.html')
             ->assertOk()
             ->assertDontSee('Articles de recherche');
+    }
+
+    public function test_public_storage_files_are_served_when_reaching_laravel(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('content/publications/bulletin.pdf', '%PDF-1.4 test');
+
+        $this->get('/storage/content/publications/bulletin.pdf')
+            ->assertOk()
+            ->assertHeader('content-disposition', 'inline; filename=bulletin.pdf')
+            ->assertStreamedContent('%PDF-1.4 test');
     }
 }

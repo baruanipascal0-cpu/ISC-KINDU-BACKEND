@@ -109,6 +109,8 @@ Slugs recommandes :
 
 Les liens frontend `data-backend-route="/documents/bulletin-licence"`, `bulletin-master`, `echeancier` cherchent d'abord le slug exact, puis le dernier document publie du type correspondant. Ils restent en attente si aucun fichier publie ne correspond.
 
+Si le lien du PDF renvoie 404 apres un redeploiement, verifier `Pilotage > Production > Stockage`. Sur Render, les fichiers envoyes depuis l'admin doivent etre conserves par un disque persistant ou un stockage externe. Apres correction du stockage, renvoyer le PDF dans la publication concernee.
+
 ## Nos frais
 
 Menu admin : `Publications du site > Nos frais`

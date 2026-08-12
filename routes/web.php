@@ -19,6 +19,7 @@ use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\StaffMemberController;
 use App\Http\Controllers\Admin\StudentCommentController;
 use App\Http\Controllers\FrontendController;
+use App\Http\Controllers\PublicStorageController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/admin/login', [AuthController::class, 'showLogin'])->name('admin.login');
@@ -80,4 +81,5 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 });
 
 Route::get('/', FrontendController::class)->name('site.home');
+Route::get('/storage/{path}', PublicStorageController::class)->where('path', '.*')->name('storage.public');
 Route::get('/{path}', FrontendController::class)->where('path', '.*')->name('site.file');
