@@ -122,7 +122,7 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($settings as $key => $definition) {
-            SiteSetting::updateOrCreate(
+            SiteSetting::firstOrCreate(
                 ['key' => $key],
                 [
                     'value' => $definition[0],
@@ -141,7 +141,7 @@ class DatabaseSeeder extends Seeder
         $parentModels = [];
 
         foreach ($parents as [$label, $url, $order]) {
-            $parentModels[$label] = MenuItem::updateOrCreate(
+            $parentModels[$label] = MenuItem::firstOrCreate(
                 ['location' => 'main', 'label' => $label],
                 [
                     'parent_id' => null,
@@ -156,7 +156,7 @@ class DatabaseSeeder extends Seeder
 
         foreach ($children as $parentLabel => $items) {
             foreach ($items as [$label, $url, $order]) {
-                MenuItem::updateOrCreate(
+                MenuItem::firstOrCreate(
                     ['location' => 'main', 'label' => $label],
                     [
                         'parent_id' => $parentModels[$parentLabel]?->id,
@@ -169,7 +169,7 @@ class DatabaseSeeder extends Seeder
         }
 
         foreach (($menu['flat'] ?? []) as [$location, $label, $url, $order]) {
-            MenuItem::updateOrCreate(
+            MenuItem::firstOrCreate(
                 ['location' => $location, 'label' => $label],
                 [
                     'parent_id' => null,
@@ -186,7 +186,7 @@ class DatabaseSeeder extends Seeder
         $pages = config('isc_site.pages', []);
 
         foreach ($pages as [$title, $slug, $excerpt, $imageUrl]) {
-            Page::updateOrCreate(
+            Page::firstOrCreate(
                 ['slug' => $slug],
                 [
                     'title' => $title,
@@ -262,7 +262,7 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($blocks as [$group, $key, $title, $subtitle, $body, $imageUrl, $linkUrl, $linkLabel, $icon, $order]) {
-            ContentBlock::updateOrCreate(
+            ContentBlock::firstOrCreate(
                 ['key' => $key],
                 [
                     'block_group' => $group,
@@ -280,7 +280,7 @@ class DatabaseSeeder extends Seeder
         }
 
         foreach (config('isc_site.institution_service_blocks', []) as [$key, $title, $linkUrl, $order]) {
-            ContentBlock::updateOrCreate(
+            ContentBlock::firstOrCreate(
                 ['key' => $key],
                 [
                     'block_group' => 'institution_service',

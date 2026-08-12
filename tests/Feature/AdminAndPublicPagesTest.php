@@ -2,6 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Models\ContentBlock;
+use App\Models\Page;
+use App\Models\SiteSetting;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
@@ -65,6 +68,47 @@ class AdminAndPublicPagesTest extends TestCase
         $this->assertSame('', $settings['social.youtube_url']);
         $this->assertSame('', $settings['social.email']);
         $this->assertFalse($settings['admissions.is_open']);
+    }
+
+    public function test_seeders_do_not_overwrite_admin_content_after_redeploy(): void
+    {
+        $page = Page::where('slug', 'institution')->firstOrFail();
+        $page->update([
+            'title' => 'Institution modifiee',
+            'excerpt' => 'Resume admin conserve.',
+            'image_url' => 'https://cdn.example.test/pages/institution-admin.jpg',
+        ]);
+
+        $slide = ContentBlock::where('key', 'home_slide.welcome')->firstOrFail();
+        $slide->update([
+            'title' => 'Banniere admin',
+            'body' => 'Texte de banniere publie depuis admin.',
+            'image_url' => 'https://cdn.example.test/slides/admin.jpg',
+        ]);
+
+        SiteSetting::where('key', 'institution.phone')->firstOrFail()
+            ->update(['value' => '+243 900 111 222']);
+
+        $this->seed();
+
+        $this->assertDatabaseHas('pages', [
+            'id' => $page->id,
+            'title' => 'Institution modifiee',
+            'excerpt' => 'Resume admin conserve.',
+            'image_url' => 'https://cdn.example.test/pages/institution-admin.jpg',
+        ]);
+
+        $this->assertDatabaseHas('content_blocks', [
+            'id' => $slide->id,
+            'title' => 'Banniere admin',
+            'body' => 'Texte de banniere publie depuis admin.',
+            'image_url' => 'https://cdn.example.test/slides/admin.jpg',
+        ]);
+
+        $this->assertSame(
+            '+243 900 111 222',
+            SiteSetting::where('key', 'institution.phone')->firstOrFail()->value
+        );
     }
 
     public function test_public_detail_pages_render_with_base_tag(): void
