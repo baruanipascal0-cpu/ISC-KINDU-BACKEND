@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Models\Student;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -126,5 +128,57 @@ class IscKinduApiTest extends TestCase
             ->assertJsonPath('success', false)
             ->assertJsonPath('data.next_step', 'login')
             ->assertJsonPath('data.user.email', 'etudiant@isc-kindu.test');
+    }
+
+    public function test_validated_student_can_activate_account_and_login_with_matricule(): void
+    {
+        $this->seed();
+
+        $user = User::create([
+            'name' => 'Alice Kalume',
+            'first_name' => 'Alice',
+            'last_name' => 'Kalume',
+            'email' => 'alice.kalume.account@isc-kindu.test',
+            'phone' => '+243810009991',
+            'role' => 'student',
+            'status' => 'active',
+            'institution_code' => 'ISC_KINDU',
+            'password' => 'ancien-secret',
+        ]);
+
+        Student::create([
+            'user_id' => $user->id,
+            'matricule' => 'ISC-2026-0099',
+            'last_name' => 'Kalume',
+            'post_name' => 'Bora',
+            'first_name' => 'Alice',
+            'gender' => 'F',
+            'email' => $user->email,
+            'phone' => $user->phone,
+            'status' => 'active',
+        ]);
+
+        $this->postJson('/api/auth/register', [
+            'matricule' => 'ISC-2026-0099',
+            'email' => 'alice.kalume.account@isc-kindu.test',
+            'phone' => '+243810009991',
+            'password' => 'secret123',
+            'password_confirmation' => 'secret123',
+            'institution_code' => 'ISC_KINDU',
+        ])->assertCreated()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('data.next_step', 'student_wallet');
+
+        $login = $this->postJson('/api/auth/login', [
+            'matricule' => 'ISC-2026-0099',
+            'password' => 'secret123',
+        ])->assertOk()
+            ->assertJsonPath('success', true);
+
+        $this->withToken($login->json('data.token'))
+            ->getJson('/api/student/dashboard')
+            ->assertOk()
+            ->assertJsonPath('data.student.matricule', 'ISC-2026-0099')
+            ->assertJsonPath('data.student.email', 'alice.kalume.account@isc-kindu.test');
     }
 }

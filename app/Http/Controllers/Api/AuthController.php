@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Models\Student;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends ApiController
@@ -13,13 +15,18 @@ class AuthController extends ApiController
     public function register(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'last_name' => ['required', 'string', 'max:120'],
-            'first_name' => ['required', 'string', 'max:120'],
+            'matricule' => ['nullable', 'string', 'max:80'],
+            'last_name' => [$request->filled('matricule') ? 'nullable' : 'required', 'string', 'max:120'],
+            'first_name' => [$request->filled('matricule') ? 'nullable' : 'required', 'string', 'max:120'],
             'email' => ['required', 'email', 'max:190'],
             'phone' => ['nullable', 'string', 'max:40'],
             'password' => ['required', 'string', 'min:6', 'confirmed'],
             'institution_code' => ['nullable', 'string', 'max:40'],
         ]);
+
+        if (! empty($data['matricule'])) {
+            return $this->registerWithMatricule($data);
+        }
 
         $existingUser = User::query()
             ->where('email', $data['email'])
@@ -61,14 +68,13 @@ class AuthController extends ApiController
     public function login(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'login' => ['required', 'string', 'max:190'],
+            'login' => ['nullable', 'required_without:matricule', 'string', 'max:190'],
+            'matricule' => ['nullable', 'required_without:login', 'string', 'max:80'],
             'password' => ['required', 'string'],
         ]);
 
-        $user = User::query()
-            ->where('email', $data['login'])
-            ->orWhere('phone', $data['login'])
-            ->first();
+        $login = $data['login'] ?? $data['matricule'];
+        $user = $this->userForLogin($login);
 
         if (! $user || ! Hash::check($data['password'], $user->password)) {
             throw ValidationException::withMessages([
@@ -114,6 +120,97 @@ class AuthController extends ApiController
         $request->user()?->currentAccessToken()?->delete();
 
         return $this->ok([], 'Deconnexion reussie.');
+    }
+
+    private function registerWithMatricule(array $data): JsonResponse
+    {
+        $student = Student::query()
+            ->with('user')
+            ->where('matricule', $data['matricule'])
+            ->first();
+
+        if (! $student) {
+            throw ValidationException::withMessages([
+                'matricule' => ['Matricule introuvable. Verifiez le matricule donne par l apparitorat apres validation.'],
+            ]);
+        }
+
+        $email = Str::lower($data['email']);
+        $phone = $data['phone'] ?? null;
+        $linkedUser = $student->user;
+        $existingUser = User::query()
+            ->where('email', $email)
+            ->when($phone, fn ($query, string $phone) => $query->orWhere('phone', $phone))
+            ->first();
+
+        if ($existingUser && $linkedUser && $existingUser->id !== $linkedUser->id) {
+            throw ValidationException::withMessages([
+                'email' => ['Cet email ou telephone est deja utilise par un autre compte.'],
+            ]);
+        }
+
+        if ($existingUser && ! $linkedUser && $existingUser->email !== $email) {
+            throw ValidationException::withMessages([
+                'phone' => ['Ce telephone est deja utilise par un autre compte.'],
+            ]);
+        }
+
+        if ($existingUser?->isAdmin() || $linkedUser?->isAdmin()) {
+            throw ValidationException::withMessages([
+                'email' => ['Cette adresse email appartient a un compte administrateur.'],
+            ]);
+        }
+
+        $user = $linkedUser ?: $existingUser;
+
+        $payload = [
+            'name' => $student->full_name ?: trim(($data['first_name'] ?? '').' '.($data['last_name'] ?? '')),
+            'first_name' => $student->first_name ?: ($data['first_name'] ?? null),
+            'last_name' => $student->last_name ?: ($data['last_name'] ?? null),
+            'email' => $email,
+            'phone' => $phone ?: $student->phone,
+            'role' => 'student',
+            'status' => 'active',
+            'institution_code' => $data['institution_code'] ?? 'ISC_KINDU',
+            'password' => $data['password'],
+        ];
+
+        if ($user) {
+            $user->forceFill(array_filter($payload, fn ($value) => $value !== null && $value !== ''))->save();
+        } else {
+            $user = User::create($payload);
+        }
+
+        $student->forceFill([
+            'user_id' => $user->id,
+            'email' => $email,
+            'phone' => $phone ?: $student->phone,
+        ])->save();
+
+        return $this->ok([
+            'user' => $this->userPayload($user),
+            'token' => $user->createToken('isc-kindu-student')->plainTextToken,
+            'next_step' => 'student_wallet',
+            'has_application' => $user->currentApplication()->exists(),
+        ], 'Compte etudiant active.', 201);
+    }
+
+    private function userForLogin(string $login): ?User
+    {
+        $user = User::query()
+            ->where('email', $login)
+            ->orWhere('phone', $login)
+            ->first();
+
+        if ($user) {
+            return $user;
+        }
+
+        return Student::query()
+            ->with('user')
+            ->where('matricule', $login)
+            ->first()
+            ?->user;
     }
 
     private function userPayload(User $user): array
