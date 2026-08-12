@@ -46,6 +46,9 @@ class AdminAndPublicPagesTest extends TestCase
                     'institution.phone' => '+243 999 000 111',
                     'institution.address' => 'Avenue du Commerce, Kindu',
                     'admissions.academic_year' => '2026-2027',
+                    'social.facebook_url' => null,
+                    'social.youtube_url' => null,
+                    'social.email' => '',
                 ],
             ])
             ->assertRedirect();
@@ -57,6 +60,9 @@ class AdminAndPublicPagesTest extends TestCase
         $this->assertSame('contact@isc-kindu.ac.cd', $settings['institution.email']);
         $this->assertSame('+243 999 000 111', $settings['institution.phone']);
         $this->assertSame('Avenue du Commerce, Kindu', $settings['institution.address']);
+        $this->assertSame('', $settings['social.facebook_url']);
+        $this->assertSame('', $settings['social.youtube_url']);
+        $this->assertSame('', $settings['social.email']);
         $this->assertFalse($settings['admissions.is_open']);
     }
 

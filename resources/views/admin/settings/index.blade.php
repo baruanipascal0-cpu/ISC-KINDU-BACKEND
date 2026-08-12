@@ -39,18 +39,30 @@
             </div>
             <div class="card-body form-grid">
                 @foreach ($settings as $setting)
+                    @php
+                        $oldSettings = old('settings', []);
+                        $fieldValue = is_array($oldSettings) && array_key_exists($setting->key, $oldSettings)
+                            ? $oldSettings[$setting->key]
+                            : $setting->value;
+
+                        if (is_array($fieldValue)) {
+                            $fieldValue = implode(', ', array_filter($fieldValue, fn ($item) => $item !== null && $item !== ''));
+                        }
+
+                        $fieldValue = $fieldValue ?? '';
+                    @endphp
                     <div class="field {{ $setting->type === 'textarea' ? 'full' : '' }}">
                         <label for="setting-{{ $setting->id }}">{{ $settingLabels[$setting->key] ?? $setting->key }}</label>
                         <span class="muted">{{ $setting->key }}</span>
                         @if ($setting->type === 'boolean')
                             <label class="checkbox-row">
-                                <input id="setting-{{ $setting->id }}" type="checkbox" name="settings[{{ $setting->key }}]" value="1" @checked((bool) $setting->value)>
+                                <input id="setting-{{ $setting->id }}" type="checkbox" name="settings[{{ $setting->key }}]" value="1" @checked((bool) $fieldValue)>
                                 Actif
                             </label>
                         @elseif ($setting->type === 'textarea')
-                            <textarea id="setting-{{ $setting->id }}" name="settings[{{ $setting->key }}]">{{ old('settings.'.$setting->key, $setting->value) }}</textarea>
+                            <textarea id="setting-{{ $setting->id }}" name="settings[{{ $setting->key }}]">{{ $fieldValue }}</textarea>
                         @else
-                            <input id="setting-{{ $setting->id }}" name="settings[{{ $setting->key }}]" value="{{ old('settings.'.$setting->key, $setting->value) }}">
+                            <input id="setting-{{ $setting->id }}" name="settings[{{ $setting->key }}]" value="{{ $fieldValue }}">
                         @endif
                     </div>
                 @endforeach

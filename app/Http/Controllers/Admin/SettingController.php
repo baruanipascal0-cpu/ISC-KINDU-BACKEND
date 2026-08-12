@@ -36,7 +36,7 @@ class SettingController extends Controller
             }
 
             $setting->update([
-                'value' => $setting->type === 'boolean' ? (bool) $value : $value,
+                'value' => $this->normalizedValue($setting, $value),
             ]);
         }
 
@@ -47,5 +47,22 @@ class SettingController extends Controller
             ->each(fn (SiteSetting $setting) => $setting->update(['value' => false]));
 
         return back()->with('status', 'Parametres mis a jour.');
+    }
+
+    private function normalizedValue(SiteSetting $setting, mixed $value): mixed
+    {
+        if ($setting->type === 'boolean') {
+            return (bool) $value;
+        }
+
+        if ($value === null) {
+            return '';
+        }
+
+        if (is_array($value)) {
+            return array_values(array_filter($value, fn ($item): bool => $item !== null && $item !== ''));
+        }
+
+        return $value;
     }
 }
