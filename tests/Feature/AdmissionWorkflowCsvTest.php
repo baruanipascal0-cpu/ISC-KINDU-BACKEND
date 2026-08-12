@@ -148,4 +148,62 @@ class AdmissionWorkflowCsvTest extends TestCase
         $this->assertStringContainsString($student->matricule, $csv);
         $this->assertStringContainsString($enrollment->enrollment_number, $csv);
     }
+
+    public function test_public_frontend_admission_form_is_linked_to_admin_validation_and_enrollment_sheet(): void
+    {
+        $this->seed();
+        Storage::fake('public');
+
+        $this->withHeader('Accept', 'application/json')
+            ->post('/api/inscriptions/public', [
+                'academic_year' => '2026-2027',
+                'niveau' => 'Licence-LMD',
+                'promotion' => 'L1',
+                'filiere' => 'Marketing',
+                'nom' => 'Kalume',
+                'postnom' => 'Bora',
+                'prenom' => 'Alice',
+                'sexe' => 'Feminin',
+                'telephone' => '+243810000301',
+                'email' => 'alice.kalume@isc-kindu.test',
+                'adresse' => 'Kindu',
+                'mode' => 'Presentiel',
+                'dossier' => UploadedFile::fake()->create('dossier.pdf', 120, 'application/pdf'),
+                'consent' => '1',
+            ])->assertCreated()
+            ->assertJsonPath('data.status', 'submitted')
+            ->assertJsonPath('data.program.slug', 'lm-marketing')
+            ->assertJsonPath('data.documents.0.type', 'dossier-inscription');
+
+        $application = AdmissionApplication::where('email', 'alice.kalume@isc-kindu.test')->firstOrFail();
+        $admin = User::where('email', 'admin@isc-kindu.test')->firstOrFail();
+
+        $this->assertDatabaseHas('application_documents', [
+            'admission_application_id' => $application->id,
+            'name' => 'Dossier d inscription',
+            'status' => 'submitted',
+        ]);
+
+        $this->actingAs($admin)->patch(route('admin.admissions.status', $application), [
+            'status' => 'approved',
+            'internal_note' => 'Dossier conforme.',
+            'student_message' => 'Votre admission est approuvee.',
+        ])->assertRedirect();
+
+        $student = Student::where('email', 'alice.kalume@isc-kindu.test')->firstOrFail();
+        $enrollment = Enrollment::where('student_id', $student->id)->firstOrFail();
+
+        Storage::disk('public')->assertExists($enrollment->fiche_path);
+
+        $this->assertDatabaseHas('student_documents', [
+            'admission_application_id' => $application->id,
+            'type' => 'fiche-inscription',
+            'status' => 'available',
+        ]);
+
+        $this->actingAs($admin)
+            ->get('/admin/registre-inscriptions?search=Kalume')
+            ->assertOk()
+            ->assertSee('Kalume');
+    }
 }

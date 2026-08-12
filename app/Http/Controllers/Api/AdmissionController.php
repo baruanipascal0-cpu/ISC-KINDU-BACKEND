@@ -8,6 +8,7 @@ use App\Models\Level;
 use App\Models\Program;
 use App\Models\Promotion;
 use App\Models\Section;
+use App\Models\User;
 use App\Services\AdmissionWorkflowService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -22,9 +23,22 @@ class AdmissionController extends ApiController
 
     public function store(Request $request): JsonResponse
     {
+        return $this->createApplicationForUser($request, $request->user(), $this->validatedApplication($request));
+    }
+
+    public function publicStore(Request $request): JsonResponse
+    {
+        $data = $this->validatedPublicApplication($request);
+        $user = $this->publicApplicant($data);
+
+        return $this->createApplicationForUser($request, $user, $this->publicApplicationData($data));
+    }
+
+    private function createApplicationForUser(Request $request, User $user, array $data): JsonResponse
+    {
         $existingApplication = AdmissionApplication::query()
             ->with(['section', 'program', 'academicYear', 'academicLevel', 'promotion'])
-            ->where('user_id', $request->user()->id)
+            ->where('user_id', $user->id)
             ->latest()
             ->first();
 
@@ -43,11 +57,10 @@ class AdmissionController extends ApiController
             ], 409);
         }
 
-        $data = $this->validatedApplication($request);
         [$section, $program] = $this->resolveSectionAndProgram($data);
         [$academicYear, $level, $promotion] = $this->resolveAcademicChoice($data);
 
-        $application = AdmissionApplication::create($this->applicationPayload($request, $data, $section, $program, $academicYear, $level, $promotion) + [
+        $application = AdmissionApplication::create($this->applicationPayload($request, $user, $data, $section, $program, $academicYear, $level, $promotion) + [
             'application_number' => $this->nextApplicationNumber(),
             'status' => 'submitted',
             'submitted_at' => now(),
@@ -99,7 +112,7 @@ class AdmissionController extends ApiController
         [$section, $program] = $this->resolveSectionAndProgram($data, $application);
         [$academicYear, $level, $promotion] = $this->resolveAcademicChoice($data, $application);
 
-        $application->update($this->applicationPayload($request, $data, $section, $program, $academicYear, $level, $promotion, $application, partial: true) + [
+        $application->update($this->applicationPayload($request, $request->user(), $data, $section, $program, $academicYear, $level, $promotion, $application, partial: true) + [
             'status' => 'submitted',
             'submitted_at' => $application->submitted_at ?? now(),
             'student_message' => null,
@@ -172,33 +185,111 @@ class AdmissionController extends ApiController
         ]);
     }
 
+    private function validatedPublicApplication(Request $request): array
+    {
+        return $request->validate([
+            'academic_year' => ['nullable', 'string', 'max:20'],
+            'niveau' => ['required', 'string', 'max:80'],
+            'promotion' => ['nullable', 'string', 'max:120'],
+            '_domaine' => ['nullable', 'string', 'max:160'],
+            'filiere' => ['required', 'string', 'max:160'],
+            'nom' => ['required', 'string', 'max:120'],
+            'postnom' => ['nullable', 'string', 'max:120'],
+            'prenom' => ['nullable', 'string', 'max:120'],
+            'sexe' => ['nullable', 'string', 'max:40'],
+            'telephone' => ['nullable', 'string', 'max:40'],
+            'email' => ['required', 'email', 'max:190'],
+            'adresse' => ['nullable', 'string', 'max:500'],
+            'mode' => ['nullable', 'string', 'max:120'],
+            'dossier' => ['nullable', 'file', 'mimes:pdf', 'max:10240'],
+            'formulaire' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png,webp', 'max:10240'],
+            'consent' => ['accepted'],
+        ]);
+    }
+
+    private function publicApplicant(array $data): User
+    {
+        $email = Str::lower($data['email']);
+        $phone = $data['telephone'] ?? null;
+
+        $user = User::query()->where('email', $email)->first();
+
+        if (! $user && $phone) {
+            $user = User::query()->where('phone', $phone)->first();
+
+            abort_if(
+                $user && $user->email !== $email,
+                422,
+                'Ce numero de telephone est deja lie a un autre compte etudiant.'
+            );
+        }
+
+        abort_if($user?->isAdmin(), 422, 'Cette adresse email appartient a un compte administrateur.');
+
+        $payload = [
+            'name' => trim(($data['prenom'] ?? '').' '.$data['nom']),
+            'first_name' => $data['prenom'] ?: ($data['postnom'] ?? $data['nom']),
+            'last_name' => $data['nom'],
+            'phone' => $phone,
+            'role' => 'student',
+            'status' => 'active',
+            'institution_code' => 'ISC_KINDU',
+        ];
+
+        if ($user) {
+            $user->forceFill(array_filter($payload, fn ($value) => $value !== null && $value !== ''))->save();
+
+            return $user;
+        }
+
+        return User::create($payload + [
+            'email' => $email,
+            'password' => Str::random(40),
+        ]);
+    }
+
+    private function publicApplicationData(array $data): array
+    {
+        $level = $data['niveau'];
+
+        return [
+            'academic_year' => $data['academic_year'] ?? null,
+            'level' => $level,
+            'promotion' => $data['promotion'] ?? null,
+            'cycle' => $this->cycleFromLevel($level),
+            'section' => $data['_domaine'] ?? null,
+            'program' => $data['filiere'],
+            'last_name' => $data['nom'],
+            'post_name' => $data['postnom'] ?? null,
+            'first_name' => $data['prenom'] ?: ($data['postnom'] ?? $data['nom']),
+            'gender' => $this->genderCode($data['sexe'] ?? null),
+            'email' => Str::lower($data['email']),
+            'phone' => $data['telephone'] ?? null,
+            'address' => $data['adresse'] ?? null,
+            'comment' => trim('Mode de formation: '.($data['mode'] ?? 'Non precise')),
+            'institution_code' => 'ISC_KINDU',
+        ];
+    }
+
     private function resolveSectionAndProgram(array $data, ?AdmissionApplication $application = null): array
     {
-        $section = isset($data['section_id'])
-            ? Section::find($data['section_id'])
-            : null;
+        $cycle = $data['cycle'] ?? $this->cycleFromLevel($data['level'] ?? null);
+        $section = isset($data['section_id']) ? Section::find($data['section_id']) : null;
 
         if (! $section && isset($data['section'])) {
-            $section = Section::query()
-                ->where('slug', Str::slug($data['section']))
-                ->orWhere('name', $data['section'])
-                ->first();
+            $section = $this->findSection($data['section']);
         }
 
         $section ??= $application?->section;
 
-        $program = isset($data['program_id'])
-            ? Program::find($data['program_id'])
-            : null;
+        $program = isset($data['program_id']) ? Program::find($data['program_id']) : null;
 
         if (! $program && isset($data['program'])) {
-            $program = Program::query()
-                ->where('slug', Str::slug($data['program']))
-                ->orWhere('name', $data['program'])
-                ->first();
+            $program = $this->findProgram($data['program'], $cycle, $section);
         }
 
         $program ??= $application?->program;
+        $section ??= $program?->section;
 
         abort_if(! $section, 422, 'La section demandee n existe pas dans ISC KINDU.');
         abort_if(! $program, 422, 'La filiere demandee n existe pas dans ISC KINDU.');
@@ -265,6 +356,7 @@ class AdmissionController extends ApiController
 
     private function applicationPayload(
         Request $request,
+        User $user,
         array $data,
         Section $section,
         Program $program,
@@ -276,7 +368,7 @@ class AdmissionController extends ApiController
     ): array
     {
         $payload = [
-            'user_id' => $request->user()->id,
+            'user_id' => $user->id,
             'section_id' => $section->id,
             'program_id' => $program->id,
             'academic_year_id' => $academicYear?->id,
@@ -342,6 +434,75 @@ class AdmissionController extends ApiController
                 $application->photo_path
             );
         }
+
+        if ($request->hasFile('dossier')) {
+            $this->workflow->registerUploadedDocument(
+                $application,
+                'dossier-inscription',
+                'Dossier d inscription',
+                $request->file('dossier')->store('admissions/dossiers', 'public')
+            );
+        }
+
+        if ($request->hasFile('formulaire')) {
+            $this->workflow->registerUploadedDocument(
+                $application,
+                'formulaire-inscription',
+                'Formulaire d inscription complete',
+                $request->file('formulaire')->store('admissions/formulaires', 'public')
+            );
+        }
+    }
+
+    private function findSection(string $label): ?Section
+    {
+        $slug = Str::slug($label);
+
+        return Section::query()
+            ->where('is_active', true)
+            ->get()
+            ->first(fn (Section $section) => $section->slug === $slug || Str::slug($section->name) === $slug);
+    }
+
+    private function findProgram(string $label, ?string $cycle, ?Section $section): ?Program
+    {
+        $slug = Str::slug($label);
+
+        return Program::query()
+            ->with('section')
+            ->where('is_active', true)
+            ->when($cycle, fn ($query, string $cycle) => $query->where('cycle', $cycle))
+            ->when($section, fn ($query, Section $section) => $query->where('section_id', $section->id))
+            ->get()
+            ->first(fn (Program $program) => $program->slug === $slug
+                || Str::slug($program->name) === $slug
+                || Str::endsWith($program->slug, $slug));
+    }
+
+    private function cycleFromLevel(?string $level): ?string
+    {
+        $value = Str::lower((string) $level);
+
+        if (str_contains($value, 'master') || str_starts_with($value, 'm')) {
+            return 'Master';
+        }
+
+        if (str_contains($value, 'licence') || str_starts_with($value, 'l')) {
+            return 'Licence';
+        }
+
+        return null;
+    }
+
+    private function genderCode(?string $gender): ?string
+    {
+        $value = Str::lower(Str::ascii((string) $gender));
+
+        return match (true) {
+            str_starts_with($value, 'm') => 'M',
+            str_starts_with($value, 'f') => 'F',
+            default => $gender ?: null,
+        };
     }
 
     private function applicationResource(AdmissionApplication $application): array

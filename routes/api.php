@@ -72,6 +72,7 @@ Route::get('/events/{slug}', [ContentController::class, 'eventShow']);
 Route::post('/auth/register', [AuthController::class, 'register']);
 Route::post('/auth/login', [AuthController::class, 'login']);
 
+Route::post('/inscriptions/public', [AdmissionController::class, 'publicStore']);
 Route::post('/contact/messages', [ContactController::class, 'message']);
 Route::post('/opportunites', [ContactController::class, 'opportunity']);
 Route::post('/emplois', [ContactController::class, 'opportunity']);
