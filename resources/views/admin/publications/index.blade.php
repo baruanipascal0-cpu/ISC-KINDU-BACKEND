@@ -10,7 +10,7 @@
                 <h2 class="card-title">{{ $type ? $type : 'Publications' }}</h2>
                 <div class="admin-tabs">
                     <a href="{{ route('admin.publications.index') }}" @class(['active' => ! $type])>Toutes</a>
-                    @foreach (['Communique', 'Document', 'Frais', 'Article', 'Ressource', 'Bibliotheque', 'These', 'Centre de recherche', 'In memoriam', 'Alumni'] as $item)
+                    @foreach (['Communique', 'Document', 'Frais', 'Article', 'Ressource', 'Bibliotheque', 'These', 'Centre de recherche', 'Projet', 'Recherche', 'Travail etudiant', 'Travail enseignant', 'Opportunite', 'Offre', 'Emploi', 'Stage', 'In memoriam', 'Alumni'] as $item)
                         <a href="{{ route('admin.publications.index', ['type' => $item]) }}" @class(['active' => $type === $item])>{{ $item }}</a>
                     @endforeach
                 </div>

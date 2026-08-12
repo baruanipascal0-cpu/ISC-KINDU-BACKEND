@@ -3,8 +3,11 @@
 namespace Tests\Feature;
 
 use App\Models\Event;
+use App\Models\ContentBlock;
+use App\Models\MediaFile;
 use App\Models\NewsPost;
 use App\Models\Publication;
+use App\Models\StaffMember;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -215,18 +218,126 @@ class ContentNavigationApiTest extends TestCase
         $this->getJson('/api/fees/slug-inconnu')->assertNotFound();
     }
 
+    public function test_gallery_teachers_search_and_institution_blocks_are_available(): void
+    {
+        ContentBlock::create([
+            'block_group' => 'home_service',
+            'key' => 'home_service.empty_api_test',
+            'title' => null,
+            'sort_order' => 1,
+            'is_active' => true,
+        ]);
+
+        MediaFile::create([
+            'name' => 'Campus Kindu',
+            'slug' => 'campus-kindu',
+            'collection' => 'gallery',
+            'caption' => 'Photo du campus.',
+            'alt_text' => 'Campus ISC Kindu',
+            'path' => 'https://cdn.example.test/gallery/campus.jpg',
+            'disk' => 'external',
+            'mime_type' => 'image/jpeg',
+            'size' => 12345,
+            'is_published' => true,
+            'published_at' => now(),
+        ]);
+
+        StaffMember::create([
+            'name' => 'Professeur Demo',
+            'slug' => 'professeur-demo',
+            'title' => 'Professeur',
+            'role' => 'enseignant',
+            'department' => 'Informatique de gestion',
+            'is_active' => true,
+        ]);
+
+        $this->getJson('/api/institution/blocks')
+            ->assertOk()
+            ->assertJsonFragment(['key' => 'home_service.empty_api_test']);
+
+        $this->getJson('/api/gallery')
+            ->assertOk()
+            ->assertJsonPath('data.0.slug', 'campus-kindu')
+            ->assertJsonPath('data.0.url', 'https://cdn.example.test/gallery/campus.jpg');
+
+        $this->getJson('/api/gallery/campus-kindu')
+            ->assertOk()
+            ->assertJsonPath('data.caption', 'Photo du campus.');
+
+        $this->getJson('/api/teachers')
+            ->assertOk()
+            ->assertJsonPath('data.0.slug', 'professeur-demo');
+
+        $this->getJson('/api/search?q=professeur')
+            ->assertOk()
+            ->assertJsonFragment([
+                'type' => 'staff',
+                'title' => 'Professeur Demo',
+            ]);
+
+        $this->getJson('/api/site/content-map')
+            ->assertOk()
+            ->assertJsonPath('data.gallery.0.slug', 'campus-kindu')
+            ->assertJsonPath('data.teachers.0.slug', 'professeur-demo');
+    }
+
+    public function test_publication_aliases_cover_documents_research_alumni_and_opportunities(): void
+    {
+        foreach ([
+            ['Guide etudiant', 'guide-etudiant', 'Document'],
+            ['Article scientifique', 'article-scientifique', 'Article'],
+            ['Offre de stage', 'offre-de-stage', 'Stage'],
+            ['Ancien etudiant', 'ancien-etudiant', 'Alumni'],
+        ] as [$title, $slug, $type]) {
+            Publication::create([
+                'title' => $title,
+                'slug' => $slug,
+                'type' => $type,
+                'description' => 'Contenu '.$type,
+                'published_at' => now(),
+                'is_published' => true,
+            ]);
+        }
+
+        $this->getJson('/api/documents')
+            ->assertOk()
+            ->assertJsonPath('data.0.slug', 'guide-etudiant');
+
+        $this->getJson('/api/research')
+            ->assertOk()
+            ->assertJsonPath('data.0.slug', 'article-scientifique');
+
+        $this->getJson('/api/opportunities')
+            ->assertOk()
+            ->assertJsonPath('data.0.slug', 'offre-de-stage');
+
+        $this->getJson('/api/alumni')
+            ->assertOk()
+            ->assertJsonPath('data.0.slug', 'ancien-etudiant');
+    }
+
     public function test_existing_public_routes_still_respond(): void
     {
         foreach ([
             '/api/site/settings',
+            '/api/site/content-map',
+            '/api/search',
             '/api/home/cards',
             '/api/home/statistics',
             '/api/sections',
+            '/api/teachers',
             '/api/news/categories',
             '/api/news',
             '/api/events',
+            '/api/gallery',
+            '/api/documents',
+            '/api/research',
+            '/api/opportunities',
+            '/api/alumni',
             '/api/publications',
             '/api/fees',
+            '/api/diplomas',
+            '/api/palmares',
         ] as $route) {
             $this->getJson($route)->assertOk();
         }

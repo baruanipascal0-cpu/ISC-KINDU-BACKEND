@@ -7,13 +7,16 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\EnrollmentRegistryController;
 use App\Http\Controllers\Admin\EventController;
 use App\Http\Controllers\Admin\GraduationListController;
+use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\MessageController;
+use App\Http\Controllers\Admin\MenuItemController;
 use App\Http\Controllers\Admin\NewsController;
 use App\Http\Controllers\Admin\PageController;
 use App\Http\Controllers\Admin\PublicationController;
 use App\Http\Controllers\Admin\ProductionController;
 use App\Http\Controllers\Admin\SectionController;
 use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Admin\StaffMemberController;
 use App\Http\Controllers\Admin\StudentCommentController;
 use App\Http\Controllers\FrontendController;
 use Illuminate\Support\Facades\Route;
@@ -26,11 +29,23 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/', DashboardController::class)->name('dashboard');
 
     Route::resource('pages', PageController::class)->except(['show']);
+    Route::resource('navigation', MenuItemController::class)
+        ->parameters(['navigation' => 'menuItem'])
+        ->names('menu-items')
+        ->except(['show']);
     Route::get('parametres', [SettingController::class, 'index'])->name('settings.index');
     Route::put('parametres', [SettingController::class, 'update'])->name('settings.update');
     Route::resource('blocs-site', ContentBlockController::class)
         ->parameters(['blocs-site' => 'contentBlock'])
         ->names('content-blocks')
+        ->except(['show']);
+    Route::resource('medias', MediaController::class)
+        ->parameters(['medias' => 'media'])
+        ->names('media')
+        ->except(['show']);
+    Route::resource('enseignants', StaffMemberController::class)
+        ->parameters(['enseignants' => 'staffMember'])
+        ->names('staff')
         ->except(['show']);
     Route::resource('sections', SectionController::class)->except(['show']);
     Route::resource('actualites', NewsController::class)

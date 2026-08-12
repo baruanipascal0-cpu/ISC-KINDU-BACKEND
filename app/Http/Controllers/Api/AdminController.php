@@ -5,13 +5,19 @@ namespace App\Http\Controllers\Api;
 use App\Models\AdmissionApplication;
 use App\Models\AuditLog;
 use App\Models\ContactMessage;
+use App\Models\ContentBlock;
 use App\Models\Enrollment;
 use App\Models\Event;
+use App\Models\GraduationList;
+use App\Models\MediaFile;
+use App\Models\MenuItem;
 use App\Models\NewsPost;
 use App\Models\Page;
 use App\Models\Payment;
 use App\Models\Publication;
 use App\Models\Section;
+use App\Models\SiteSetting;
+use App\Models\StaffMember;
 use App\Models\Student;
 use App\Models\StudentDocument;
 use App\Models\User;
@@ -40,6 +46,10 @@ class AdminController extends ApiController
             'news' => NewsPost::count(),
             'publications' => Publication::count(),
             'events' => Event::count(),
+            'content_blocks' => ContentBlock::count(),
+            'media' => MediaFile::count(),
+            'teachers' => StaffMember::where('role', 'enseignant')->count(),
+            'graduation_lists' => GraduationList::count(),
             'messages' => ContactMessage::where('status', 'new')->count(),
         ]);
     }
@@ -109,6 +119,12 @@ class AdminController extends ApiController
             'publications' => Publication::latest()->get(),
             'events' => Event::latest()->get(),
             'sections' => Section::with('programs')->orderBy('sort_order')->get(),
+            'content_blocks' => ContentBlock::orderBy('block_group')->orderBy('sort_order')->get(),
+            'media' => MediaFile::orderBy('collection')->orderBy('sort_order')->latest('published_at')->get(),
+            'teachers' => StaffMember::orderBy('role')->orderBy('sort_order')->get(),
+            'menus' => MenuItem::with('children')->whereNull('parent_id')->orderBy('location')->orderBy('sort_order')->get(),
+            'settings' => SiteSetting::orderBy('group')->orderBy('key')->get(),
+            'graduation_lists' => GraduationList::latest('published_at')->get(),
         ]);
     }
 

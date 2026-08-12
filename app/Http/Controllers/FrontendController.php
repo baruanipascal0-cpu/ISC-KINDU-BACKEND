@@ -9,7 +9,7 @@ class FrontendController extends Controller
 {
     public function __invoke(Request $request, string $path = 'index.html'): Response
     {
-        $frontendRoot = realpath(env('FRONTEND_PATH', base_path('../ISC-KINDU/isc-kindu.local')));
+        $frontendRoot = $this->frontendRoot();
 
         abort_if($frontendRoot === false, 404);
 
@@ -21,6 +21,8 @@ class FrontendController extends Controller
 
         if ($detailTemplate !== null) {
             $path = $detailTemplate;
+        } else {
+            $path = $this->legacyTemplate($path) ?? $path;
         }
 
         $candidates = [$path];
@@ -54,11 +56,11 @@ class FrontendController extends Controller
         $path = trim($path, '/');
 
         if (preg_match('#^actualites/[^/]+$#', $path)) {
-            return 'actualites.html';
+            return 'blog.html';
         }
 
         if (preg_match('#^publications/[^/]+$#', $path)) {
-            return 'articles.html';
+            return 'documents.html';
         }
 
         if (preg_match('#^frais/[^/]+$#', $path)) {
@@ -66,14 +68,49 @@ class FrontendController extends Controller
         }
 
         if (preg_match('#^evenements/[^/]+$#', $path)) {
-            return 'actualites.html';
+            return 'blog.html';
         }
 
         if (preg_match('#^diplomes/[^/]+$#', $path)) {
-            return 'diplomes.html';
+            return 'nos-diplomes.html';
+        }
+
+        if (preg_match('#^palmares/[^/]+$#', $path)) {
+            return 'nos-palmares.html';
         }
 
         return null;
+    }
+
+    private function legacyTemplate(string $path): ?string
+    {
+        return [
+            'presentation-de-lisc-kindu.html' => 'aboutus.html',
+            'facultes-et-entites.html' => 'formation/licence.html',
+            'inscriptions.html' => 'inscription.html',
+            'diplomes.html' => 'nos-diplomes.html',
+            'palmares.html' => 'nos-palmares.html',
+            'actualites.html' => 'blog.html',
+            'publications.html' => 'documents.html',
+            'articles.html' => 'documents.html',
+        ][trim($path, '/')] ?? null;
+    }
+
+    private function frontendRoot(): string|false
+    {
+        foreach (array_filter([
+            env('FRONTEND_PATH'),
+            base_path('../ISC/www.isig.ac.cd'),
+            base_path('../ISC-KINDU/isc-kindu.local'),
+        ]) as $candidate) {
+            $root = realpath($candidate);
+
+            if ($root !== false) {
+                return $root;
+            }
+        }
+
+        return false;
     }
 
     private function withBaseTag(string $html): string

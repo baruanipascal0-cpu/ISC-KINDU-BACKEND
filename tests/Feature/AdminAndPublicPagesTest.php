@@ -19,8 +19,11 @@ class AdminAndPublicPagesTest extends TestCase
         foreach ([
             '/admin',
             '/admin/parametres',
+            '/admin/navigation',
             '/admin/blocs-site',
+            '/admin/medias',
             '/admin/sections',
+            '/admin/enseignants',
             '/admin/registre-inscriptions',
             '/admin/publications?type=Diplome',
             '/admin/publications?type=Ressource',

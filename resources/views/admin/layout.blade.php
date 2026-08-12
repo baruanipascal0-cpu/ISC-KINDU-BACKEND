@@ -19,9 +19,12 @@
             <nav class="nav-list">
                 <a class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}" href="{{ route('admin.dashboard') }}">Tableau de bord</a>
                 <a class="nav-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}" href="{{ route('admin.settings.index') }}">Parametres</a>
+                <a class="nav-link {{ request()->routeIs('admin.menu-items.*') ? 'active' : '' }}" href="{{ route('admin.menu-items.index') }}">Navigation</a>
                 <a class="nav-link {{ request()->routeIs('admin.pages.*') ? 'active' : '' }}" href="{{ route('admin.pages.index') }}">Pages du site</a>
                 <a class="nav-link {{ request()->routeIs('admin.content-blocks.*') ? 'active' : '' }}" href="{{ route('admin.content-blocks.index') }}">Blocs du site</a>
+                <a class="nav-link {{ request()->routeIs('admin.media.*') ? 'active' : '' }}" href="{{ route('admin.media.index') }}">Medias</a>
                 <a class="nav-link {{ request()->routeIs('admin.sections.*') ? 'active' : '' }}" href="{{ route('admin.sections.index') }}">Sections</a>
+                <a class="nav-link {{ request()->routeIs('admin.staff.*') ? 'active' : '' }}" href="{{ route('admin.staff.index') }}">Enseignants</a>
                 <a class="nav-link {{ request()->routeIs('admin.admissions.*') ? 'active' : '' }}" href="{{ route('admin.admissions.index') }}">Demandes d admission</a>
                 <a class="nav-link {{ request()->routeIs('admin.registry.*') ? 'active' : '' }}" href="{{ route('admin.registry.index') }}">Registre des inscriptions</a>
                 <a class="nav-link {{ request()->routeIs('admin.news.*') ? 'active' : '' }}" href="{{ route('admin.news.index') }}">Actualites</a>

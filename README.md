@@ -114,25 +114,37 @@ Contenu public:
 ```text
 GET  /api/site/settings
 GET  /api/site/menus
+GET  /api/site/content-map
+GET  /api/site/search?q=mot
 GET  /api/media
+GET  /api/gallery
+GET  /api/gallery/{slug}
 GET  /api/home/slides
 GET  /api/home/cards
 GET  /api/home/statistics
+GET  /api/search?q=mot
 GET  /api/pages
 GET  /api/sections
 GET  /api/programs
+GET  /api/teachers
+GET  /api/teachers/{slug}
 GET  /api/news
 GET  /api/news/{slug}
+GET  /api/documents
+GET  /api/alumni
+GET  /api/opportunities
+GET  /api/research
 GET  /api/publications
 GET  /api/publications/{slug}
 GET  /api/fees
 GET  /api/fees/{slug}
+GET  /api/diplomas
+GET  /api/palmares
 GET  /api/events
 GET  /api/events/{slug}
 ```
 
-Les pages HTML principales du site chargent `assets/custom/backend-api.js` et `assets/custom/site-backend.js`.
-Ces scripts lisent le contenu publie dans l espace administrateur et remplacent les anciennes cartes statiques du site.
+Le frontend peut consommer les modules individuellement ou utiliser `GET /api/site/content-map` pour recuperer les menus, blocs, pages, medias, frais, actualites et enseignants en une seule reponse.
 
 Pages detail publiques:
 
@@ -173,7 +185,10 @@ Administration:
 GET   /admin/login
 GET   /admin
 GET   /admin/parametres
+GET   /admin/navigation
 GET   /admin/sections
+GET   /admin/medias
+GET   /admin/enseignants
 GET   /admin/actualites
 GET   /admin/publications
 GET   /admin/publications?type=Frais

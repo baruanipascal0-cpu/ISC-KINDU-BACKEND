@@ -135,19 +135,90 @@ class DatabaseSeeder extends Seeder
 
     private function seedMenu(): void
     {
-        $items = [
-            ['Accueil', '/', 1],
-            ['Sections et filieres', '/facultes-et-entites.html', 2],
-            ['Diplome', '/diplomes.html', 3],
-            ['Inscription', '/inscriptions.html', 4],
-            ['Publications', '/publications.html', 5],
+        $parents = [
+            ['Accueil', '/index.html', 1],
+            ['Institution', '/aboutus.html', 2],
+            ['Formation', '/formation/licence.html', 3],
+            ['Vie etudiante', '/page/new-isigien.html', 4],
+            ['Recherche et societe', '/services-a-la-societe.html', 5],
             ['Contact', '/contact.html', 6],
         ];
 
-        foreach ($items as [$label, $url, $order]) {
-            MenuItem::firstOrCreate(
+        $parentModels = [];
+
+        foreach ($parents as [$label, $url, $order]) {
+            $parentModels[$label] = MenuItem::updateOrCreate(
                 ['location' => 'main', 'label' => $label],
                 [
+                    'parent_id' => null,
+                    'url' => $url,
+                    'sort_order' => $order,
+                    'is_active' => true,
+                ]
+            );
+        }
+
+        $children = [
+            'Institution' => [
+                ['Decouvrir l ISC-KINDU', '/aboutus.html#apropos', 1],
+                ['Nos services', '/services.html', 2],
+                ['Bourse ISC Kindu', '/bourse-isc-kindu.html', 3],
+                ['Galerie', '/media-center.html', 4],
+                ['Blog', '/blog.html', 5],
+            ],
+            'Formation' => [
+                ['Licence LMD', '/formation/licence.html', 1],
+                ['Master LMD', '/formation/master.html', 2],
+                ['Centre de Formation', '/formation/centre-de-formation.html', 3],
+                ['Cisco Academie', '/formation/cisco-academie.html', 4],
+                ['Nos enseignants', '/nos-enseignants.html', 5],
+                ['Inscription', '/inscription.html', 6],
+                ['Scolarite et archives', '/documents.html', 7],
+                ['Nos diplomes', '/nos-diplomes.html', 8],
+                ['Nos palmares', '/nos-palmares.html', 9],
+            ],
+            'Vie etudiante' => [
+                ['Bienvenue aux nouveaux', '/page/new-isigien.html', 1],
+                ['College des etudiants', '/page/college.html', 2],
+                ['Nos alumni', '/page/alumni.html', 3],
+                ['Opportunites', '/travailler-a-isc/opportunites.html', 4],
+                ['Connexion etudiant', '/login.html', 5],
+            ],
+            'Recherche et societe' => [
+                ['Travaux de Licence', '/recherche-societe/travaux-licence.html', 1],
+                ['Travaux de Master', '/recherche-societe/travaux-master.html', 2],
+                ['Publications enseignants', '/recherche-societe/publications-enseignants.html', 3],
+                ['Nos projets', '/recherche-societe/nos-projets.html', 4],
+                ['Hackathon', '/recherche-societe/hackathon.html', 5],
+                ['Realisations', '/recherche-societe/realisations.html', 6],
+            ],
+        ];
+
+        foreach ($children as $parentLabel => $items) {
+            foreach ($items as [$label, $url, $order]) {
+                MenuItem::updateOrCreate(
+                    ['location' => 'main', 'label' => $label],
+                    [
+                        'parent_id' => $parentModels[$parentLabel]?->id,
+                        'url' => $url,
+                        'sort_order' => $order,
+                        'is_active' => true,
+                    ]
+                );
+            }
+        }
+
+        foreach ([
+            ['topbar', 'S inscrire a l ISC Kindu', '/inscription.html', 1],
+            ['topbar', 'Connexion etudiant', '/login.html', 2],
+            ['topbar', 'Nos frais', '/nos-frais.html', 3],
+            ['footer', 'Nos documents', '/documents.html', 1],
+            ['footer', 'Contactez-nous', '/contact.html', 2],
+        ] as [$location, $label, $url, $order]) {
+            MenuItem::updateOrCreate(
+                ['location' => $location, 'label' => $label],
+                [
+                    'parent_id' => null,
                     'url' => $url,
                     'sort_order' => $order,
                     'is_active' => true,
@@ -159,75 +230,44 @@ class DatabaseSeeder extends Seeder
     private function seedPages(): void
     {
         $pages = [
-            [
-                'title' => 'Accueil',
-                'slug' => 'accueil',
-                'excerpt' => 'Page d accueil institutionnelle ISC KINDU.',
-                'body' => 'Contenu a completer depuis l espace administrateur.',
-                'image_url' => '/images/site/photo-1.jpg',
-            ],
-            [
-                'title' => 'Inscription',
-                'slug' => 'inscription',
-                'excerpt' => 'Informations pour guider le candidat avant son inscription.',
-                'body' => 'Le candidat cree un compte, se connecte, remplit le dossier et accede ensuite a son portefeuille etudiant.',
-                'image_url' => '/images/site/photo-2.jpg',
-            ],
-            [
-                'title' => 'Sections et filieres',
-                'slug' => 'sections-et-filieres',
-                'excerpt' => 'Sections organisees a ISC KINDU.',
-                'body' => 'Cette page expose uniquement les sections et filieres organisees a ISC KINDU.',
-                'image_url' => '/images/site/photo-3.jpg',
-            ],
-            [
-                'title' => 'Diplomes',
-                'slug' => 'diplomes',
-                'excerpt' => 'Informations sur les diplomes et documents academiques.',
-                'body' => 'Cette page sera alimentee par les communiques et fichiers de type Diplome publies dans l espace administrateur.',
-                'image_url' => '/images/site/photo-4.jpg',
-            ],
-            [
-                'title' => 'Ressources',
-                'slug' => 'ressources',
-                'excerpt' => 'Documents utiles et ressources a publier pour les visiteurs.',
-                'body' => 'Les ressources ajoutees dans le backend apparaitront sur les pages bibliotheques, articles et ressources.',
-                'image_url' => '/images/site/photo-5.jpg',
-            ],
-            [
-                'title' => 'In memoriam',
-                'slug' => 'in-memoriam',
-                'excerpt' => 'Espace de communiques memoriels.',
-                'body' => 'Les contenus in memoriam doivent etre publies depuis le backend avec le type In memoriam.',
-                'image_url' => '/images/site/photo-6.jpg',
-            ],
-            [
-                'title' => 'Alumni ISC',
-                'slug' => 'alumni',
-                'excerpt' => 'Espace communautaire des anciens etudiants ISC KINDU.',
-                'body' => 'La page alumni publique fonctionne comme espace communautaire etudiant.',
-                'image_url' => '/images/site/photo-7.jpg',
-            ],
-            [
-                'title' => 'Contact',
-                'slug' => 'contact',
-                'excerpt' => 'Coordonnees et formulaire de contact ISC KINDU.',
-                'body' => 'Les messages envoyes depuis le site sont enregistres dans le backend et consultables dans l espace administrateur.',
-                'image_url' => '/images/site/photo-8.jpg',
-            ],
-            [
-                'title' => 'Plan strategique',
-                'slug' => 'plan-strategique',
-                'excerpt' => 'Page institutionnelle a completer si elle est necessaire.',
-                'body' => 'Ce contenu reste disponible dans le backend, mais les anciens liens lies a un autre etablissement sont masques sur le site.',
-                'image_url' => '/images/site/photo-9.jpg',
-            ],
+            ['Accueil', 'accueil', 'Page d accueil institutionnelle ISC KINDU.', '/images/site/photo-1.jpg'],
+            ['Institution', 'institution', 'Presentation de l ISC KINDU et de son organisation.', '/images/site/photo-2.jpg'],
+            ['Nos services', 'services', 'Blocs institutionnels a publier depuis le backend.', '/images/site/photo-3.jpg'],
+            ['Bourse ISC Kindu', 'bourse-isc-kindu', 'Informations de bourse a completer depuis le backend.', '/images/site/photo-4.jpg'],
+            ['Formation', 'formation', 'Vue generale des formations organisees.', '/images/site/photo-5.jpg'],
+            ['Licence LMD', 'licence', 'Programmes de licence organises a l ISC KINDU.', '/images/site/photo-6.jpg'],
+            ['Master LMD', 'master', 'Programmes de master a publier si disponibles.', '/images/site/photo-7.jpg'],
+            ['Inscription', 'inscription', 'Parcours candidat et inscription en ligne.', '/images/site/photo-8.jpg'],
+            ['Documents', 'documents', 'Documents et ressources publies depuis l administration.', '/images/site/photo-9.jpg'],
+            ['Nos diplomes', 'diplomes', 'Diplomes et documents academiques publics.', '/images/site/photo-4.jpg'],
+            ['Nos palmares', 'palmares', 'Palmares et listes de diplomes publies depuis le backend.', '/images/site/photo-5.jpg'],
+            ['Nos frais', 'frais', 'Fichiers des frais a publier depuis le backend.', '/images/site/photo-6.jpg'],
+            ['Medias', 'medias', 'Galerie photo, video et media-center.', '/images/site/photo-7.jpg'],
+            ['Blog', 'blog', 'Actualites et annonces publiees depuis le backend.', '/images/site/photo-8.jpg'],
+            ['Nos enseignants', 'enseignants', 'Liste des enseignants et membres actifs.', '/images/site/photo-9.jpg'],
+            ['Vie etudiante', 'vie-etudiante', 'Pages utiles aux nouveaux etudiants.', '/images/site/photo-1.jpg'],
+            ['College des etudiants', 'college', 'Informations du college des etudiants.', '/images/site/photo-2.jpg'],
+            ['Alumni', 'alumni', 'Espace communautaire des anciens etudiants.', '/images/site/photo-3.jpg'],
+            ['Opportunites', 'opportunites', 'Offres, stages et opportunites publies depuis le backend.', '/images/site/photo-4.jpg'],
+            ['Recherche et societe', 'recherche-societe', 'Travaux, projets, realisations et publications.', '/images/site/photo-5.jpg'],
+            ['Travaux de licence', 'travaux-licence', 'Travaux de licence a publier depuis le backend.', '/images/site/photo-6.jpg'],
+            ['Travaux de master', 'travaux-master', 'Travaux de master a publier depuis le backend.', '/images/site/photo-7.jpg'],
+            ['Publications enseignants', 'publications-enseignants', 'Articles scientifiques et publications.', '/images/site/photo-8.jpg'],
+            ['Contact', 'contact', 'Coordonnees et formulaire de contact.', '/images/site/photo-9.jpg'],
+            ['Politique de confidentialite', 'politique-de-confidentialite', 'Texte legal a completer.', '/images/site/photo-1.jpg'],
+            ['Cookies', 'cookies', 'Politique cookies a completer.', '/images/site/photo-2.jpg'],
         ];
 
-        foreach ($pages as $page) {
-            Page::firstOrCreate(
-                ['slug' => $page['slug']],
-                $page + ['is_published' => true]
+        foreach ($pages as [$title, $slug, $excerpt, $imageUrl]) {
+            Page::updateOrCreate(
+                ['slug' => $slug],
+                [
+                    'title' => $title,
+                    'excerpt' => $excerpt,
+                    'body' => 'Contenu a completer depuis l espace administrateur.',
+                    'image_url' => $imageUrl,
+                    'is_published' => true,
+                ]
             );
         }
     }
@@ -282,10 +322,10 @@ class DatabaseSeeder extends Seeder
     {
         $blocks = [
             ['home_slide', 'home_slide.welcome', 'Bienvenue a l ISC KINDU', 'Message d accueil a completer depuis le backend.', 'Publiez ici le message principal de la page d accueil.', '/images/site/photo-2.jpg', '/actualites.html', 'Lire les actualites', 'fas fa-graduation-cap', 1],
-            ['home_slide', 'home_slide.admissions', 'Inscriptions en ligne', 'Compte, dossier et portefeuille etudiant.', 'Texte a completer pour presenter les inscriptions.', '/images/site/photo-1.jpg', '/inscriptions.html', 'Commencer', 'fas fa-file-signature', 2],
-            ['home_card', 'home_card.inscriptions', 'Inscriptions', 'Informations utiles pour demarrer une inscription.', 'Ce bloc peut etre modifie dans l admin.', '/images/site/photo-2.jpg', '/inscriptions.html', 'S inscrire', 'fas fa-user-plus', 1],
-            ['home_card', 'home_card.sections', 'Sections et filieres', 'Apercu des sections organisees a l ISC KINDU.', 'Ce bloc mene vers les sections gerees depuis le backend.', '/images/site/photo-3.jpg', '/facultes-et-entites.html', 'Voir les sections', 'fas fa-layer-group', 2],
-            ['home_card', 'home_card.publications', 'Publications', 'Communiques et documents officiels.', 'Ce bloc mene vers les publications admin.', '/images/site/photo-1.jpg', '/articles.html', 'Voir les publications', 'fas fa-newspaper', 3],
+            ['home_slide', 'home_slide.admissions', 'Inscriptions en ligne', 'Compte, dossier et portefeuille etudiant.', 'Texte a completer pour presenter les inscriptions.', '/images/site/photo-1.jpg', '/inscription.html', 'Commencer', 'fas fa-file-signature', 2],
+            ['home_card', 'home_card.inscriptions', 'Inscriptions', 'Informations utiles pour demarrer une inscription.', 'Ce bloc peut etre modifie dans l admin.', '/images/site/photo-2.jpg', '/inscription.html', 'S inscrire', 'fas fa-user-plus', 1],
+            ['home_card', 'home_card.sections', 'Sections et filieres', 'Apercu des sections organisees a l ISC KINDU.', 'Ce bloc mene vers les sections gerees depuis le backend.', '/images/site/photo-3.jpg', '/formation/licence.html', 'Voir les sections', 'fas fa-layer-group', 2],
+            ['home_card', 'home_card.publications', 'Publications', 'Communiques et documents officiels.', 'Ce bloc mene vers les publications admin.', '/images/site/photo-1.jpg', '/documents.html', 'Voir les publications', 'fas fa-newspaper', 3],
             ['home_service', 'home_service.academique', null, null, null, null, null, null, null, 1],
             ['home_service', 'home_service.administration', null, null, null, null, null, null, null, 2],
             ['home_service', 'home_service.recherche', null, null, null, null, null, null, null, 3],
@@ -300,7 +340,7 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($blocks as [$group, $key, $title, $subtitle, $body, $imageUrl, $linkUrl, $linkLabel, $icon, $order]) {
-            ContentBlock::firstOrCreate(
+            ContentBlock::updateOrCreate(
                 ['key' => $key],
                 [
                     'block_group' => $group,
