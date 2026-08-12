@@ -252,6 +252,30 @@ class ContentController extends ApiController
         return $this->ok($this->withMedia($publication->toArray()));
     }
 
+    public function fees(Request $request): JsonResponse
+    {
+        $items = Publication::query()
+            ->where('type', 'Frais')
+            ->where('is_published', true)
+            ->orderByDesc('published_at')
+            ->orderByDesc('id')
+            ->paginate($this->perPage($request))
+            ->through(fn (Publication $fee) => $this->withMedia($fee->toArray()));
+
+        return $this->ok($items->items(), meta: $this->paginationMeta($items));
+    }
+
+    public function feeShow(string $slug): JsonResponse
+    {
+        $fee = Publication::query()
+            ->where('slug', $slug)
+            ->where('type', 'Frais')
+            ->where('is_published', true)
+            ->firstOrFail();
+
+        return $this->ok($this->withMedia($fee->toArray()));
+    }
+
     public function graduationLists(Request $request): JsonResponse
     {
         $items = GraduationList::query()

@@ -172,7 +172,7 @@ class ContentBlockController extends Controller
         return [
             'home_slide' => 'Diaporama accueil',
             'home_card' => 'Cartes accueil',
-            'home_service' => 'Services accueil',
+            'home_service' => 'Blocs institutionnels accueil',
             'admission_intro' => 'Infos inscription',
             'admission_step' => 'Etapes inscription',
             'site_footer' => 'Pied de page',

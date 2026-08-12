@@ -21,7 +21,7 @@
             <div class="field">
                 <label for="type">Type</label>
                 <select id="type" name="type">
-                    @foreach (['Document', 'Communique', 'Article', 'Ressource', 'Bibliotheque', 'These', 'Centre de recherche', 'In memoriam', 'Alumni'] as $type)
+                    @foreach (['Document', 'Communique', 'Frais', 'Article', 'Ressource', 'Bibliotheque', 'These', 'Centre de recherche', 'In memoriam', 'Alumni'] as $type)
                         <option value="{{ $type }}" @selected(old('type', $publication->type) === $type)>{{ $type }}</option>
                     @endforeach
                 </select>

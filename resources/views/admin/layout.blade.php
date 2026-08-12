@@ -27,6 +27,7 @@
                 <a class="nav-link {{ request()->routeIs('admin.news.*') ? 'active' : '' }}" href="{{ route('admin.news.index') }}">Actualites</a>
                 <a class="nav-link {{ request()->routeIs('admin.publications.*') && ! request('type') ? 'active' : '' }}" href="{{ route('admin.publications.index') }}">Publications</a>
                 <a class="nav-link {{ request()->routeIs('admin.graduations.*') ? 'active' : '' }}" href="{{ route('admin.graduations.index') }}">Diplomes</a>
+                <a class="nav-link {{ request()->routeIs('admin.publications.*') && request('type') === 'Frais' ? 'active' : '' }}" href="{{ route('admin.publications.index', ['type' => 'Frais']) }}">Frais</a>
                 <a class="nav-link {{ request()->routeIs('admin.publications.*') && request('type') === 'Ressource' ? 'active' : '' }}" href="{{ route('admin.publications.index', ['type' => 'Ressource']) }}">Ressources</a>
                 <a class="nav-link {{ request()->routeIs('admin.publications.*') && request('type') === 'Alumni' ? 'active' : '' }}" href="{{ route('admin.publications.index', ['type' => 'Alumni']) }}">Alumni</a>
                 <a class="nav-link {{ request()->routeIs('admin.events.*') ? 'active' : '' }}" href="{{ route('admin.events.index') }}">Evenements</a>

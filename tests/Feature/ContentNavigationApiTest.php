@@ -166,11 +166,53 @@ class ContentNavigationApiTest extends TestCase
             ->assertJsonPath('data.file_url', 'https://cdn.example.test/publications/guide.pdf');
     }
 
+    public function test_fee_schedule_api_exposes_only_published_fee_documents(): void
+    {
+        Publication::create([
+            'title' => 'Echeancier des frais',
+            'slug' => 'echeancier-des-frais',
+            'type' => 'Frais',
+            'description' => 'Frais academiques officiels.',
+            'file_url' => 'https://cdn.example.test/frais/echeancier.pdf',
+            'published_at' => now(),
+            'is_published' => true,
+        ]);
+
+        Publication::create([
+            'title' => 'Document interne',
+            'slug' => 'document-interne',
+            'type' => 'Document',
+            'description' => 'Ne doit pas apparaitre dans les frais.',
+            'published_at' => now(),
+            'is_published' => true,
+        ]);
+
+        Publication::create([
+            'title' => 'Frais brouillon',
+            'slug' => 'frais-brouillon',
+            'type' => 'Frais',
+            'published_at' => now(),
+            'is_published' => false,
+        ]);
+
+        $this->getJson('/api/fees')
+            ->assertOk()
+            ->assertJsonPath('data.0.slug', 'echeancier-des-frais')
+            ->assertJsonPath('data.0.file_url', 'https://cdn.example.test/frais/echeancier.pdf')
+            ->assertJsonPath('meta.total', 1);
+
+        $this->getJson('/api/fees/echeancier-des-frais')
+            ->assertOk()
+            ->assertJsonPath('data.type', 'Frais')
+            ->assertJsonPath('data.description', 'Frais academiques officiels.');
+    }
+
     public function test_unknown_slug_returns_404(): void
     {
         $this->getJson('/api/news/slug-inconnu')->assertNotFound();
         $this->getJson('/api/events/slug-inconnu')->assertNotFound();
         $this->getJson('/api/publications/slug-inconnu')->assertNotFound();
+        $this->getJson('/api/fees/slug-inconnu')->assertNotFound();
     }
 
     public function test_existing_public_routes_still_respond(): void
@@ -184,6 +226,7 @@ class ContentNavigationApiTest extends TestCase
             '/api/news',
             '/api/events',
             '/api/publications',
+            '/api/fees',
         ] as $route) {
             $this->getJson($route)->assertOk();
         }

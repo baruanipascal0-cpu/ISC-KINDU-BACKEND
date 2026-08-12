@@ -40,6 +40,9 @@ Route::get('/news/{slug}', [ContentController::class, 'newsShow']);
 Route::get('/publications', [ContentController::class, 'publications']);
 Route::get('/publications/{slug}', [ContentController::class, 'publicationShow']);
 
+Route::get('/fees', [ContentController::class, 'fees']);
+Route::get('/fees/{slug}', [ContentController::class, 'feeShow']);
+
 Route::get('/graduation-lists', [ContentController::class, 'graduationLists']);
 Route::get('/graduation-lists/{slug}', [ContentController::class, 'graduationListShow']);
 

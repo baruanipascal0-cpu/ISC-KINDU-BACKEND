@@ -125,6 +125,8 @@ GET  /api/news
 GET  /api/news/{slug}
 GET  /api/publications
 GET  /api/publications/{slug}
+GET  /api/fees
+GET  /api/fees/{slug}
 GET  /api/events
 GET  /api/events/{slug}
 ```
@@ -174,6 +176,7 @@ GET   /admin/parametres
 GET   /admin/sections
 GET   /admin/actualites
 GET   /admin/publications
+GET   /admin/publications?type=Frais
 GET   /admin/evenements
 GET   /admin/inscriptions
 GET   /admin/messages

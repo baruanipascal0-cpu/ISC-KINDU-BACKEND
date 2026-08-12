@@ -61,6 +61,10 @@ class FrontendController extends Controller
             return 'articles.html';
         }
 
+        if (preg_match('#^frais/[^/]+$#', $path)) {
+            return 'nos-frais.html';
+        }
+
         if (preg_match('#^evenements/[^/]+$#', $path)) {
             return 'actualites.html';
         }
