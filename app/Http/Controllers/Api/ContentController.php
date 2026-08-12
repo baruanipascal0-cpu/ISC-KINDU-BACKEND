@@ -374,13 +374,36 @@ class ContentController extends ApiController
 
     public function documentShow(string $slug): JsonResponse
     {
+        $types = config('isc_site.document_types', ['Document', 'Ressource', 'Bibliotheque']);
+
         $publication = Publication::query()
             ->where('slug', $slug)
-            ->whereIn('type', config('isc_site.document_types', ['Document', 'Ressource', 'Bibliotheque']))
+            ->whereIn('type', $types)
             ->where('is_published', true)
-            ->firstOrFail();
+            ->first();
+
+        if (! $publication && ($type = $this->documentAliasType($slug)) && in_array($type, $types, true)) {
+            $publication = Publication::query()
+                ->where('type', $type)
+                ->where('is_published', true)
+                ->orderByDesc('published_at')
+                ->orderByDesc('id')
+                ->first();
+        }
+
+        abort_unless($publication, 404);
 
         return $this->ok($this->withMedia($publication->toArray()));
+    }
+
+    private function documentAliasType(string $slug): ?string
+    {
+        return match (Str::lower($slug)) {
+            'bulletin-licence', 'bulletin-inscription', 'bulletin-licence-lmd' => 'Bulletin Licence',
+            'bulletin-master', 'bulletin-master-lmd' => 'Bulletin Master',
+            'echeancier', 'echeancier-frais', 'frais' => 'Echeancier',
+            default => null,
+        };
     }
 
     public function alumni(Request $request): JsonResponse

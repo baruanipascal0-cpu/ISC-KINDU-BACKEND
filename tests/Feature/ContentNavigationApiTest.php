@@ -169,6 +169,45 @@ class ContentNavigationApiTest extends TestCase
             ->assertJsonPath('data.file_url', 'https://cdn.example.test/publications/guide.pdf');
     }
 
+    public function test_document_alias_route_returns_latest_published_bulletin_by_type(): void
+    {
+        Publication::create([
+            'title' => 'Ancien bulletin',
+            'slug' => 'ancien-bulletin',
+            'type' => 'Bulletin Licence',
+            'description' => 'Ancien fichier.',
+            'file_url' => 'https://cdn.example.test/publications/ancien.pdf',
+            'published_at' => now()->subDay(),
+            'is_published' => true,
+        ]);
+
+        Publication::create([
+            'title' => "Bulletin d'inscription",
+            'slug' => 'bulletin-inscription',
+            'type' => 'Bulletin Licence',
+            'description' => 'Fichier courant.',
+            'file_url' => 'https://cdn.example.test/publications/bulletin.pdf',
+            'published_at' => now(),
+            'is_published' => true,
+        ]);
+
+        Publication::create([
+            'title' => 'Brouillon bulletin',
+            'slug' => 'brouillon-bulletin',
+            'type' => 'Bulletin Licence',
+            'description' => 'Ne doit pas sortir.',
+            'file_url' => 'https://cdn.example.test/publications/brouillon.pdf',
+            'published_at' => now()->addDay(),
+            'is_published' => false,
+        ]);
+
+        $this->getJson('/api/documents/bulletin-licence')
+            ->assertOk()
+            ->assertJsonPath('data.slug', 'bulletin-inscription')
+            ->assertJsonPath('data.type', 'Bulletin Licence')
+            ->assertJsonPath('data.file_url', 'https://cdn.example.test/publications/bulletin.pdf');
+    }
+
     public function test_fee_schedule_api_exposes_only_published_fee_documents(): void
     {
         Publication::create([

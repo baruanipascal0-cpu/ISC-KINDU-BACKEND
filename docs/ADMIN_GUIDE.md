@@ -99,7 +99,15 @@ Pour que les boutons de telechargement fonctionnent :
 4. Cocher `Publier sur le site`.
 5. Enregistrer.
 
-Les liens frontend `data-backend-route="/documents/bulletin-licence"`, `bulletin-master`, `echeancier` restent en attente si aucun fichier publie ne correspond.
+Slugs recommandes :
+
+| Besoin | Slug recommande |
+| --- | --- |
+| Bulletin inscription Licence | `bulletin-licence` |
+| Bulletin inscription Master | `bulletin-master` |
+| Echeancier des frais | `echeancier` |
+
+Les liens frontend `data-backend-route="/documents/bulletin-licence"`, `bulletin-master`, `echeancier` cherchent d'abord le slug exact, puis le dernier document publie du type correspondant. Ils restent en attente si aucun fichier publie ne correspond.
 
 ## Nos frais
 
