@@ -13,6 +13,7 @@ use App\Models\Student;
 use App\Models\StudentDocument;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Tests\TestCase;
 
 class AdminGraduationMessagingRegistryTest extends TestCase
@@ -52,6 +53,44 @@ class AdminGraduationMessagingRegistryTest extends TestCase
             ->assertOk()
             ->assertJsonFragment(['last_name' => 'KASONGO'])
             ->assertJsonFragment(['first_name' => 'Marie']);
+    }
+
+    public function test_admin_can_import_graduates_from_csv_file(): void
+    {
+        $this->seed();
+
+        $admin = User::where('email', 'admin@isc-kindu.test')->firstOrFail();
+        $year = AcademicYear::where('is_current', true)->firstOrFail();
+        $section = Section::where('is_active', true)->firstOrFail();
+        $program = Program::where('section_id', $section->id)->firstOrFail();
+        $promotion = Promotion::orderBy('sort_order')->firstOrFail();
+
+        $file = UploadedFile::fake()->createWithContent(
+            'diplomes.csv',
+            "Matricule;Nom;Postnom;Prenom;Sexe;Pourcentage;Mention\nISC-2026-0100;MUKENDI;KABASELE;Anne;F;78;Distinction"
+        );
+
+        $this->actingAs($admin)->post(route('admin.graduations.store'), [
+            'title' => 'Liste officielle importee',
+            'academic_year_id' => $year->id,
+            'section_id' => $section->id,
+            'program_id' => $program->id,
+            'promotion_id' => $promotion->id,
+            'cycle' => 'Licence',
+            'published_at' => now()->format('Y-m-d H:i:s'),
+            'status' => 'published',
+            'graduates_file' => $file,
+        ])->assertRedirect(route('admin.graduations.index'));
+
+        $this->assertDatabaseHas('graduates', [
+            'matricule' => 'ISC-2026-0100',
+            'last_name' => 'MUKENDI',
+            'first_name' => 'Anne',
+        ]);
+
+        $this->getJson('/api/graduation-lists/liste-officielle-importee')
+            ->assertOk()
+            ->assertJsonFragment(['graduates_count' => 1]);
     }
 
     public function test_admin_can_answer_contact_message(): void

@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -60,7 +61,7 @@ class GraduationListController extends Controller
 
         DB::transaction(function () use ($data, $request): void {
             $list = GraduationList::create($data);
-            $this->syncGraduates($list, (string) $request->input('graduates_text', ''));
+            $this->syncGraduates($list, $this->graduatesInput($request));
         });
 
         return redirect()->route('admin.graduations.index')->with('status', 'Liste des diplomes creee.');
@@ -106,7 +107,7 @@ class GraduationListController extends Controller
 
         DB::transaction(function () use ($graduationList, $data, $request): void {
             $graduationList->update($data);
-            $this->syncGraduates($graduationList, (string) $request->input('graduates_text', ''));
+            $this->syncGraduates($graduationList, $this->graduatesInput($request));
         });
 
         return redirect()->route('admin.graduations.index')->with('status', 'Liste des diplomes mise a jour.');
@@ -163,6 +164,7 @@ class GraduationListController extends Controller
             'published_at' => ['nullable', 'date'],
             'status' => ['required', Rule::in(['draft', 'published', 'archived'])],
             'graduates_text' => ['nullable', 'string'],
+            'graduates_file' => ['nullable', 'file', 'max:5120'],
         ]);
 
         $slug = ($data['slug'] ?? null) ?: Str::slug($data['title']);
@@ -181,12 +183,54 @@ class GraduationListController extends Controller
         ];
     }
 
+    private function graduatesInput(Request $request): string
+    {
+        $manualText = (string) $request->input('graduates_text', '');
+
+        if (! $request->hasFile('graduates_file')) {
+            return $manualText;
+        }
+
+        $file = $request->file('graduates_file');
+        $extension = Str::lower($file->getClientOriginalExtension());
+
+        if (! in_array($extension, ['csv', 'txt'], true)) {
+            throw ValidationException::withMessages([
+                'graduates_file' => 'Importez un fichier CSV ou TXT. Depuis Excel, enregistrez le tableau en CSV UTF-8.',
+            ]);
+        }
+
+        $content = @file_get_contents($file->getRealPath());
+
+        if ($content === false) {
+            throw ValidationException::withMessages([
+                'graduates_file' => 'Le fichier importe ne peut pas etre lu.',
+            ]);
+        }
+
+        $content = preg_replace('/^\xEF\xBB\xBF/', '', $content) ?? $content;
+
+        if (function_exists('mb_detect_encoding') && function_exists('mb_convert_encoding')) {
+            $encoding = mb_detect_encoding($content, ['UTF-8', 'Windows-1252', 'ISO-8859-1'], true);
+
+            if ($encoding && $encoding !== 'UTF-8') {
+                $content = mb_convert_encoding($content, 'UTF-8', $encoding);
+            }
+        }
+
+        return collect([$manualText, $content])
+            ->map(fn (string $value): string => trim($value))
+            ->filter()
+            ->implode("\n");
+    }
+
     private function syncGraduates(GraduationList $list, string $text): void
     {
         $list->graduates()->delete();
 
         collect(preg_split('/\r\n|\r|\n/', trim($text)))
             ->filter(fn (string $line) => trim($line) !== '')
+            ->reject(fn (string $line): bool => $this->isGraduateHeaderLine($line))
             ->values()
             ->each(function (string $line, int $index) use ($list): void {
                 $parts = array_map('trim', preg_split('/[;\t|,]/', $line));
@@ -216,6 +260,13 @@ class GraduationListController extends Controller
                     'sort_order' => $index + 1,
                 ]);
             });
+    }
+
+    private function isGraduateHeaderLine(string $line): bool
+    {
+        $normalized = Str::lower(Str::ascii($line));
+
+        return str_contains($normalized, 'matricule') && str_contains($normalized, 'nom');
     }
 
     private function formOptions(): array

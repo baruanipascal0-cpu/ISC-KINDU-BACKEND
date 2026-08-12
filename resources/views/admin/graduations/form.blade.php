@@ -4,7 +4,7 @@
 @section('subtitle', 'Publier une liste officielle par annee, promotion et option')
 
 @section('content')
-    <form class="card" method="post" action="{{ $graduationList->exists ? route('admin.graduations.update', $graduationList) : route('admin.graduations.store') }}">
+    <form class="card" method="post" enctype="multipart/form-data" action="{{ $graduationList->exists ? route('admin.graduations.update', $graduationList) : route('admin.graduations.store') }}">
         @csrf
         @if ($graduationList->exists)
             @method('PUT')
@@ -79,6 +79,11 @@
                 <span>Etudiants diplomes</span>
                 <textarea name="graduates_text" rows="12" placeholder="Matricule;Nom;Postnom;Prenom;Sexe;Pourcentage;Mention">{{ old('graduates_text', $graduatesText) }}</textarea>
                 <span class="muted">Une ligne par etudiant. Exemple: ISC-2026-0001;KASONGO;MUTOMBO;Jean;M;75;Distinction</span>
+            </label>
+            <label class="field full">
+                <span>Importer une liste CSV/TXT</span>
+                <input name="graduates_file" type="file" accept=".csv,.txt,text/csv,text/plain">
+                <span class="muted">Colonnes attendues: Matricule;Nom;Postnom;Prenom;Sexe;Pourcentage;Mention. Depuis Excel, enregistrer le tableau en CSV UTF-8 avant l'import.</span>
             </label>
         </div>
 

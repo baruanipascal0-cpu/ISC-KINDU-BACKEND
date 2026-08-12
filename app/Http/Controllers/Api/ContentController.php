@@ -178,7 +178,9 @@ class ContentController extends ApiController
         if ($blocks->isNotEmpty()) {
             return $this->ok($blocks->map(fn (ContentBlock $block) => [
                 'title' => $block->title,
-                'subtitle' => $block->subtitle ?: $block->body,
+                'subtitle' => $block->subtitle,
+                'body' => $block->body,
+                'summary' => Str::limit(strip_tags($block->body ?: $block->subtitle ?: ''), 220),
                 'image_url' => $this->mediaUrl($block->image_url),
                 'link_url' => $block->link_url ?: '/',
                 'link_label' => $block->link_label,
