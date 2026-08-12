@@ -43,7 +43,8 @@ class SettingController extends Controller
         SiteSetting::query()
             ->where('type', 'boolean')
             ->whereNotIn('key', array_keys($data['settings'] ?? []))
-            ->update(['value' => false]);
+            ->get()
+            ->each(fn (SiteSetting $setting) => $setting->update(['value' => false]));
 
         return back()->with('status', 'Parametres mis a jour.');
     }

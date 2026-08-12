@@ -35,6 +35,31 @@ class AdminAndPublicPagesTest extends TestCase
         }
     }
 
+    public function test_admin_can_update_institution_settings(): void
+    {
+        $admin = User::where('role', 'admin')->firstOrFail();
+
+        $this->actingAs($admin)
+            ->put('/admin/parametres', [
+                'settings' => [
+                    'institution.email' => 'contact@isc-kindu.ac.cd',
+                    'institution.phone' => '+243 999 000 111',
+                    'institution.address' => 'Avenue du Commerce, Kindu',
+                    'admissions.academic_year' => '2026-2027',
+                ],
+            ])
+            ->assertRedirect();
+
+        $settings = $this->getJson('/api/site/settings')
+            ->assertOk()
+            ->json('data');
+
+        $this->assertSame('contact@isc-kindu.ac.cd', $settings['institution.email']);
+        $this->assertSame('+243 999 000 111', $settings['institution.phone']);
+        $this->assertSame('Avenue du Commerce, Kindu', $settings['institution.address']);
+        $this->assertFalse($settings['admissions.is_open']);
+    }
+
     public function test_public_detail_pages_render_with_base_tag(): void
     {
         $this->get('/actualites/debut')
