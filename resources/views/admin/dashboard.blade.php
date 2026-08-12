@@ -1,7 +1,7 @@
 @extends('admin.layout')
 
 @section('title', 'Tableau de bord')
-@section('subtitle', 'Vue generale des contenus et inscriptions')
+@section('subtitle', 'Administration alignee sur la structure actuelle du site ISC Kindu')
 
 @section('content')
     <div class="grid stats-grid">
@@ -9,7 +9,26 @@
             <article class="card">
                 <div class="card-body">
                     <p class="stat-value">{{ $value }}</p>
-                    <p class="stat-label">{{ ucfirst(str_replace('_', ' ', $label)) }}</p>
+                    <p class="stat-label">{{ $label }}</p>
+                </div>
+            </article>
+        @endforeach
+    </div>
+
+    <div class="grid site-module-grid">
+        @foreach ($siteModules as $module)
+            <article class="card site-module-card">
+                <div class="card-header">
+                    <h2 class="card-title">{{ $module['label'] }}</h2>
+                    <a class="btn btn-secondary" href="{{ $module['public_url'] }}" target="_blank">Voir site</a>
+                </div>
+                <div class="card-body">
+                    <p class="muted">{{ $module['description'] }}</p>
+                    <div class="site-module-actions">
+                        @foreach ($module['actions'] as $action)
+                            <a class="btn btn-muted" href="{{ route($action['route'], $action['params'] ?? []) }}">{{ $action['label'] }}</a>
+                        @endforeach
+                    </div>
                 </div>
             </article>
         @endforeach

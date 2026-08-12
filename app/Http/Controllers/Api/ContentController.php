@@ -128,8 +128,18 @@ class ContentController extends ApiController
                 ],
             ],
             'institution_blocks' => $this->institutionBlocksCollection(),
+            'site_structure' => [
+                'modules' => collect(config('isc_site.site_modules', []))
+                    ->map(fn (array $module): array => [
+                        'label' => $module['label'],
+                        'description' => $module['description'],
+                        'public_url' => $module['public_url'],
+                    ])
+                    ->values(),
+                'publication_types' => config('isc_site.publication_type_groups', []),
+            ],
             'pages' => Page::query()->where('is_published', true)->orderBy('title')->get()->map(fn (Page $page) => $this->pageResource($page)),
-            'sections' => Section::query()->where('is_active', true)->with('programs')->orderBy('sort_order')->get(),
+            'sections' => Section::query()->where('is_active', true)->with('programs')->orderBy('sort_order')->get()->map(fn (Section $section) => $this->sectionResource($section)),
             'latest_news' => NewsPost::query()->where('is_published', true)->latest('published_at')->take(6)->get()->map(fn (NewsPost $post) => $this->withMedia($post->toArray())),
             'fees' => Publication::query()->where('type', 'Frais')->where('is_published', true)->latest('published_at')->take(6)->get()->map(fn (Publication $fee) => $this->withMedia($fee->toArray())),
             'gallery' => MediaFile::query()->where('is_published', true)->orderBy('sort_order')->latest('published_at')->take(12)->get()->map(fn (MediaFile $media) => $this->mediaFileResource($media)),
@@ -250,7 +260,8 @@ class ContentController extends ApiController
             ->with(['programs' => fn ($query) => $query->where('is_active', true)])
             ->where('is_active', true)
             ->orderBy('sort_order')
-            ->get();
+            ->get()
+            ->map(fn (Section $section) => $this->sectionResource($section));
 
         return $this->ok($sections);
     }
@@ -263,7 +274,7 @@ class ContentController extends ApiController
             ->where('is_active', true)
             ->firstOrFail();
 
-        return $this->ok($section);
+        return $this->ok($this->sectionResource($section));
     }
 
     public function programs(Request $request): JsonResponse
@@ -277,7 +288,8 @@ class ContentController extends ApiController
                     ->orWhere('name', $section));
             })
             ->orderBy('name')
-            ->get();
+            ->get()
+            ->map(fn (Program $program) => $this->programResource($program));
 
         return $this->ok($programs);
     }
@@ -357,7 +369,18 @@ class ContentController extends ApiController
 
     public function documents(Request $request): JsonResponse
     {
-        return $this->publicationCollection($request, ['Document', 'Ressource', 'Bibliotheque']);
+        return $this->publicationCollection($request, config('isc_site.document_types', ['Document', 'Ressource', 'Bibliotheque']));
+    }
+
+    public function documentShow(string $slug): JsonResponse
+    {
+        $publication = Publication::query()
+            ->where('slug', $slug)
+            ->whereIn('type', config('isc_site.document_types', ['Document', 'Ressource', 'Bibliotheque']))
+            ->where('is_published', true)
+            ->firstOrFail();
+
+        return $this->ok($this->withMedia($publication->toArray()));
     }
 
     public function alumni(Request $request): JsonResponse
@@ -367,12 +390,12 @@ class ContentController extends ApiController
 
     public function opportunities(Request $request): JsonResponse
     {
-        return $this->publicationCollection($request, ['Opportunite', 'Offre', 'Emploi', 'Stage']);
+        return $this->publicationCollection($request, config('isc_site.opportunity_types', ['Opportunite', 'Offre', 'Emploi', 'Stage']));
     }
 
     public function research(Request $request): JsonResponse
     {
-        return $this->publicationCollection($request, [
+        return $this->publicationCollection($request, config('isc_site.research_types', [
             'Article',
             'These',
             'Centre de recherche',
@@ -380,7 +403,7 @@ class ContentController extends ApiController
             'Recherche',
             'Travail etudiant',
             'Travail enseignant',
-        ]);
+        ]));
     }
 
     public function publicationShow(string $slug): JsonResponse
@@ -632,6 +655,24 @@ class ContentController extends ApiController
         ];
     }
 
+    private function sectionResource(Section $section): array
+    {
+        $payload = $section->toArray();
+        $payload['programs'] = $section->programs
+            ->where('is_active', true)
+            ->values()
+            ->map(fn (Program $program) => $this->programResource($program));
+
+        return $payload;
+    }
+
+    private function programResource(Program $program): array
+    {
+        return $program->toArray() + [
+            'url' => '/filiere/'.$program->slug.'.html',
+        ];
+    }
+
     private function mediaFileResource(MediaFile $media): array
     {
         return [
@@ -705,33 +746,19 @@ class ContentController extends ApiController
 
     private function pageUrl(string $slug): string
     {
-        return [
-            'accueil' => '/',
-            'institution' => '/aboutus.html',
-            'aboutus' => '/aboutus.html',
-            'services' => '/services.html',
-            'bourse-isc-kindu' => '/bourse-isc-kindu.html',
-            'formation' => '/formation/licence.html',
-            'sections-et-filieres' => '/formation/licence.html',
-            'inscription' => '/inscription.html',
-            'documents' => '/documents.html',
-            'diplomes' => '/nos-diplomes.html',
-            'palmares' => '/nos-palmares.html',
-            'frais' => '/nos-frais.html',
-            'medias' => '/media-center.html',
-            'blog' => '/blog.html',
-            'alumni' => '/page/alumni.html',
-            'contact' => '/contact.html',
-            'recherche-societe' => '/services-a-la-societe.html',
-        ][$slug] ?? '/'.$slug.'.html';
+        $page = collect(config('isc_site.pages', []))
+            ->first(fn (array $page): bool => ($page[1] ?? null) === $slug);
+
+        return $page[4] ?? '/'.$slug.'.html';
     }
 
     private function publicationUrl(Publication $publication): string
     {
         return match ($publication->type) {
             'Frais' => '/nos-frais.html',
+            'Diplome' => '/nos-diplomes.html',
             'Alumni' => '/page/alumni.html',
-            'Article', 'These', 'Centre de recherche', 'Projet', 'Recherche', 'Travail etudiant', 'Travail enseignant' => '/recherche-societe/publications-enseignants.html',
+            'Article', 'Article scientifique', 'These', 'Formation enseignant', 'Conference', 'Seminaire', 'Centre de recherche', 'Projet', 'Recherche', 'Hackathon', 'Realisation etudiant', 'Travail Licence', 'Travail Master', 'Travail etudiant', 'Travail enseignant', 'Stage academique' => '/services-a-la-societe.html',
             'Opportunite', 'Offre', 'Emploi', 'Stage' => '/travailler-a-isc/opportunites.html',
             default => '/documents.html',
         };

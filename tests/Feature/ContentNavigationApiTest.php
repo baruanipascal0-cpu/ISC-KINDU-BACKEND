@@ -332,14 +332,38 @@ class ContentNavigationApiTest extends TestCase
             '/api/gallery',
             '/api/documents',
             '/api/research',
+            '/api/recherche-societe',
             '/api/opportunities',
+            '/api/opportunites',
+            '/api/emplois',
             '/api/alumni',
             '/api/publications',
             '/api/fees',
+            '/api/frais',
             '/api/diplomas',
             '/api/palmares',
         ] as $route) {
             $this->getJson($route)->assertOk();
         }
+    }
+
+    public function test_public_opportunity_forms_create_draft_publications_for_admin_review(): void
+    {
+        $this->postJson('/api/opportunites', [
+            'title' => 'Stage en comptabilite',
+            'organization' => 'Partenaire ISC',
+            'type' => 'Stage',
+            'deadline' => now()->addMonth()->toDateString(),
+            'apply_contact' => 'stage@example.test',
+            'summary' => 'Stage propose aux etudiants finalistes.',
+        ])->assertCreated()
+            ->assertJsonPath('data.type', 'Stage')
+            ->assertJsonPath('data.is_published', false);
+
+        $this->assertDatabaseHas('publications', [
+            'title' => 'Stage en comptabilite',
+            'type' => 'Stage',
+            'is_published' => false,
+        ]);
     }
 }

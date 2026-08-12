@@ -1,12 +1,12 @@
 @extends('admin.layout')
 
 @section('title', 'Pages du site')
-@section('subtitle', 'Accueil, diplome, inscriptions, ressources, alumni et autres pages')
+@section('subtitle', 'Plan editorial du frontend ISC Kindu : institution, formation, vie etudiante, recherche, scolarite et contact')
 
 @section('content')
     <section class="card">
         <div class="card-header">
-            <h2 class="card-title">Pages</h2>
+            <h2 class="card-title">Pages referencees par le site public</h2>
             <a class="btn btn-primary" href="{{ route('admin.pages.create') }}">Nouvelle page</a>
         </div>
         <div class="table-wrap">

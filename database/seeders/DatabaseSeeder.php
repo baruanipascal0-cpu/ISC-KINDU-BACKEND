@@ -114,15 +114,15 @@ class DatabaseSeeder extends Seeder
             'institution.short_name' => ['ISC KINDU'],
             'institution.code' => ['ISC_KINDU'],
             'institution.logo_url' => ['/images/site/logo.jpg'],
-            'institution.email' => ['contact@isc-kindu.test'],
-            'institution.phone' => ['+243 000 000 000'],
-            'institution.address' => ['Kindu, Maniema, RDC'],
+            'institution.email' => ['info@isc-kindu.ac.cd'],
+            'institution.phone' => ['+243 825 558 366'],
+            'institution.address' => ['05, Av. Kindu, Kasuku, Kindu, Maniema/RDC'],
             'admissions.is_open' => [true, 'boolean', 'admissions'],
             'admissions.academic_year' => [$this->academicYear(), 'text', 'admissions'],
         ];
 
         foreach ($settings as $key => $definition) {
-            SiteSetting::firstOrCreate(
+            SiteSetting::updateOrCreate(
                 ['key' => $key],
                 [
                     'value' => $definition[0],
@@ -135,14 +135,8 @@ class DatabaseSeeder extends Seeder
 
     private function seedMenu(): void
     {
-        $parents = [
-            ['Accueil', '/index.html', 1],
-            ['Institution', '/aboutus.html', 2],
-            ['Formation', '/formation/licence.html', 3],
-            ['Vie etudiante', '/page/new-isigien.html', 4],
-            ['Recherche et societe', '/services-a-la-societe.html', 5],
-            ['Contact', '/contact.html', 6],
-        ];
+        $menu = config('isc_site.menu', []);
+        $parents = $menu['parents'] ?? [];
 
         $parentModels = [];
 
@@ -158,41 +152,7 @@ class DatabaseSeeder extends Seeder
             );
         }
 
-        $children = [
-            'Institution' => [
-                ['Decouvrir l ISC-KINDU', '/aboutus.html#apropos', 1],
-                ['Nos services', '/services.html', 2],
-                ['Bourse ISC Kindu', '/bourse-isc-kindu.html', 3],
-                ['Galerie', '/media-center.html', 4],
-                ['Blog', '/blog.html', 5],
-            ],
-            'Formation' => [
-                ['Licence LMD', '/formation/licence.html', 1],
-                ['Master LMD', '/formation/master.html', 2],
-                ['Centre de Formation', '/formation/centre-de-formation.html', 3],
-                ['Cisco Academie', '/formation/cisco-academie.html', 4],
-                ['Nos enseignants', '/nos-enseignants.html', 5],
-                ['Inscription', '/inscription.html', 6],
-                ['Scolarite et archives', '/documents.html', 7],
-                ['Nos diplomes', '/nos-diplomes.html', 8],
-                ['Nos palmares', '/nos-palmares.html', 9],
-            ],
-            'Vie etudiante' => [
-                ['Bienvenue aux nouveaux', '/page/new-isigien.html', 1],
-                ['College des etudiants', '/page/college.html', 2],
-                ['Nos alumni', '/page/alumni.html', 3],
-                ['Opportunites', '/travailler-a-isc/opportunites.html', 4],
-                ['Connexion etudiant', '/login.html', 5],
-            ],
-            'Recherche et societe' => [
-                ['Travaux de Licence', '/recherche-societe/travaux-licence.html', 1],
-                ['Travaux de Master', '/recherche-societe/travaux-master.html', 2],
-                ['Publications enseignants', '/recherche-societe/publications-enseignants.html', 3],
-                ['Nos projets', '/recherche-societe/nos-projets.html', 4],
-                ['Hackathon', '/recherche-societe/hackathon.html', 5],
-                ['Realisations', '/recherche-societe/realisations.html', 6],
-            ],
-        ];
+        $children = $menu['children'] ?? [];
 
         foreach ($children as $parentLabel => $items) {
             foreach ($items as [$label, $url, $order]) {
@@ -208,13 +168,7 @@ class DatabaseSeeder extends Seeder
             }
         }
 
-        foreach ([
-            ['topbar', 'S inscrire a l ISC Kindu', '/inscription.html', 1],
-            ['topbar', 'Connexion etudiant', '/login.html', 2],
-            ['topbar', 'Nos frais', '/nos-frais.html', 3],
-            ['footer', 'Nos documents', '/documents.html', 1],
-            ['footer', 'Contactez-nous', '/contact.html', 2],
-        ] as [$location, $label, $url, $order]) {
+        foreach (($menu['flat'] ?? []) as [$location, $label, $url, $order]) {
             MenuItem::updateOrCreate(
                 ['location' => $location, 'label' => $label],
                 [
@@ -229,34 +183,7 @@ class DatabaseSeeder extends Seeder
 
     private function seedPages(): void
     {
-        $pages = [
-            ['Accueil', 'accueil', 'Page d accueil institutionnelle ISC KINDU.', '/images/site/photo-1.jpg'],
-            ['Institution', 'institution', 'Presentation de l ISC KINDU et de son organisation.', '/images/site/photo-2.jpg'],
-            ['Nos services', 'services', 'Blocs institutionnels a publier depuis le backend.', '/images/site/photo-3.jpg'],
-            ['Bourse ISC Kindu', 'bourse-isc-kindu', 'Informations de bourse a completer depuis le backend.', '/images/site/photo-4.jpg'],
-            ['Formation', 'formation', 'Vue generale des formations organisees.', '/images/site/photo-5.jpg'],
-            ['Licence LMD', 'licence', 'Programmes de licence organises a l ISC KINDU.', '/images/site/photo-6.jpg'],
-            ['Master LMD', 'master', 'Programmes de master a publier si disponibles.', '/images/site/photo-7.jpg'],
-            ['Inscription', 'inscription', 'Parcours candidat et inscription en ligne.', '/images/site/photo-8.jpg'],
-            ['Documents', 'documents', 'Documents et ressources publies depuis l administration.', '/images/site/photo-9.jpg'],
-            ['Nos diplomes', 'diplomes', 'Diplomes et documents academiques publics.', '/images/site/photo-4.jpg'],
-            ['Nos palmares', 'palmares', 'Palmares et listes de diplomes publies depuis le backend.', '/images/site/photo-5.jpg'],
-            ['Nos frais', 'frais', 'Fichiers des frais a publier depuis le backend.', '/images/site/photo-6.jpg'],
-            ['Medias', 'medias', 'Galerie photo, video et media-center.', '/images/site/photo-7.jpg'],
-            ['Blog', 'blog', 'Actualites et annonces publiees depuis le backend.', '/images/site/photo-8.jpg'],
-            ['Nos enseignants', 'enseignants', 'Liste des enseignants et membres actifs.', '/images/site/photo-9.jpg'],
-            ['Vie etudiante', 'vie-etudiante', 'Pages utiles aux nouveaux etudiants.', '/images/site/photo-1.jpg'],
-            ['College des etudiants', 'college', 'Informations du college des etudiants.', '/images/site/photo-2.jpg'],
-            ['Alumni', 'alumni', 'Espace communautaire des anciens etudiants.', '/images/site/photo-3.jpg'],
-            ['Opportunites', 'opportunites', 'Offres, stages et opportunites publies depuis le backend.', '/images/site/photo-4.jpg'],
-            ['Recherche et societe', 'recherche-societe', 'Travaux, projets, realisations et publications.', '/images/site/photo-5.jpg'],
-            ['Travaux de licence', 'travaux-licence', 'Travaux de licence a publier depuis le backend.', '/images/site/photo-6.jpg'],
-            ['Travaux de master', 'travaux-master', 'Travaux de master a publier depuis le backend.', '/images/site/photo-7.jpg'],
-            ['Publications enseignants', 'publications-enseignants', 'Articles scientifiques et publications.', '/images/site/photo-8.jpg'],
-            ['Contact', 'contact', 'Coordonnees et formulaire de contact.', '/images/site/photo-9.jpg'],
-            ['Politique de confidentialite', 'politique-de-confidentialite', 'Texte legal a completer.', '/images/site/photo-1.jpg'],
-            ['Cookies', 'cookies', 'Politique cookies a completer.', '/images/site/photo-2.jpg'],
-        ];
+        $pages = config('isc_site.pages', []);
 
         foreach ($pages as [$title, $slug, $excerpt, $imageUrl]) {
             Page::updateOrCreate(
@@ -274,48 +201,43 @@ class DatabaseSeeder extends Seeder
 
     private function seedSectionsAndPrograms(): void
     {
-        $sections = [
-            'Gestion commerciale et administrative' => [
-                'Comptabilite et finances',
-                'Marketing',
-                'Fiscalite',
-                'Douanes et accises',
-                'Banque et assurance',
-                'Entrepreneuriat',
-                'Sciences et techniques du secretariat de direction',
-            ],
-            'Gestion informatique' => [
-                'Informatique de gestion',
-                'Reseaux et techniques de maintenance',
-            ],
-        ];
-
         $order = 1;
+        $activeSectionSlugs = collect(config('isc_site.academic_structure', []))
+            ->pluck('slug')
+            ->all();
 
-        foreach ($sections as $sectionName => $programs) {
-            $section = Section::firstOrCreate(
-                ['slug' => Str::slug($sectionName)],
+        foreach (config('isc_site.academic_structure', []) as $sectionDefinition) {
+            $section = Section::updateOrCreate(
+                ['slug' => $sectionDefinition['slug']],
                 [
-                    'name' => $sectionName,
-                    'description' => 'Description a completer par les informations officielles.',
+                    'name' => $sectionDefinition['name'],
+                    'description' => $sectionDefinition['description'],
                     'sort_order' => $order++,
                     'is_active' => true,
                 ]
             );
 
-            foreach ($programs as $programName) {
-                Program::firstOrCreate(
-                    ['slug' => Str::slug($programName)],
+            foreach ($sectionDefinition['programs'] as [$programName, $programSlug, $cycle, $description]) {
+                Program::updateOrCreate(
+                    ['slug' => $programSlug],
                     [
                         'section_id' => $section->id,
                         'name' => $programName,
-                        'cycle' => 'Licence',
-                        'description' => 'Programme a completer par les informations officielles.',
+                        'cycle' => $cycle,
+                        'description' => $description,
                         'is_active' => true,
                     ]
                 );
             }
         }
+
+        Section::query()
+            ->whereNotIn('slug', $activeSectionSlugs)
+            ->whereIn('slug', [
+                'gestion-commerciale-et-administrative',
+                'gestion-informatique',
+            ])
+            ->update(['is_active' => false]);
     }
 
     private function seedBlocks(): void
@@ -351,6 +273,27 @@ class DatabaseSeeder extends Seeder
                     'link_url' => $linkUrl,
                     'link_label' => $linkLabel,
                     'icon' => $icon,
+                    'sort_order' => $order,
+                    'is_active' => true,
+                ]
+            );
+        }
+
+        foreach (config('isc_site.institution_service_blocks', []) as [$key, $title, $linkUrl, $order]) {
+            ContentBlock::updateOrCreate(
+                ['key' => $key],
+                [
+                    'block_group' => 'institution_service',
+                    'title' => $title,
+                    'subtitle' => null,
+                    'body' => null,
+                    'image_url' => null,
+                    'image_public_id' => null,
+                    'image_disk' => null,
+                    'image_alt' => null,
+                    'link_url' => $linkUrl,
+                    'link_label' => null,
+                    'icon' => null,
                     'sort_order' => $order,
                     'is_active' => true,
                 ]

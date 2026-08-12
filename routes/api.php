@@ -46,14 +46,20 @@ Route::get('/news', [ContentController::class, 'news']);
 Route::get('/news/{slug}', [ContentController::class, 'newsShow']);
 
 Route::get('/documents', [ContentController::class, 'documents']);
+Route::get('/documents/{slug}', [ContentController::class, 'documentShow']);
 Route::get('/alumni', [ContentController::class, 'alumni']);
 Route::get('/opportunities', [ContentController::class, 'opportunities']);
+Route::get('/opportunites', [ContentController::class, 'opportunities']);
+Route::get('/emplois', [ContentController::class, 'opportunities']);
 Route::get('/research', [ContentController::class, 'research']);
+Route::get('/recherche-societe', [ContentController::class, 'research']);
 Route::get('/publications', [ContentController::class, 'publications']);
 Route::get('/publications/{slug}', [ContentController::class, 'publicationShow']);
 
 Route::get('/fees', [ContentController::class, 'fees']);
 Route::get('/fees/{slug}', [ContentController::class, 'feeShow']);
+Route::get('/frais', [ContentController::class, 'fees']);
+Route::get('/frais/{slug}', [ContentController::class, 'feeShow']);
 
 Route::get('/graduation-lists', [ContentController::class, 'graduationLists']);
 Route::get('/graduation-lists/{slug}', [ContentController::class, 'graduationListShow']);
@@ -67,6 +73,8 @@ Route::post('/auth/register', [AuthController::class, 'register']);
 Route::post('/auth/login', [AuthController::class, 'login']);
 
 Route::post('/contact/messages', [ContactController::class, 'message']);
+Route::post('/opportunites', [ContactController::class, 'opportunity']);
+Route::post('/emplois', [ContactController::class, 'opportunity']);
 Route::post('/newsletter', [ContactController::class, 'newsletter']);
 
 Route::middleware('auth:sanctum')->group(function (): void {

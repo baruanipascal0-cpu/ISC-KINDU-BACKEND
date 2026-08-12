@@ -17,26 +17,42 @@
                 </span>
             </a>
             <nav class="nav-list">
-                <a class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}" href="{{ route('admin.dashboard') }}">Tableau de bord</a>
-                <a class="nav-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}" href="{{ route('admin.settings.index') }}">Parametres</a>
-                <a class="nav-link {{ request()->routeIs('admin.menu-items.*') ? 'active' : '' }}" href="{{ route('admin.menu-items.index') }}">Navigation</a>
-                <a class="nav-link {{ request()->routeIs('admin.pages.*') ? 'active' : '' }}" href="{{ route('admin.pages.index') }}">Pages du site</a>
-                <a class="nav-link {{ request()->routeIs('admin.content-blocks.*') ? 'active' : '' }}" href="{{ route('admin.content-blocks.index') }}">Blocs du site</a>
-                <a class="nav-link {{ request()->routeIs('admin.media.*') ? 'active' : '' }}" href="{{ route('admin.media.index') }}">Medias</a>
-                <a class="nav-link {{ request()->routeIs('admin.sections.*') ? 'active' : '' }}" href="{{ route('admin.sections.index') }}">Sections</a>
-                <a class="nav-link {{ request()->routeIs('admin.staff.*') ? 'active' : '' }}" href="{{ route('admin.staff.index') }}">Enseignants</a>
-                <a class="nav-link {{ request()->routeIs('admin.admissions.*') ? 'active' : '' }}" href="{{ route('admin.admissions.index') }}">Demandes d admission</a>
-                <a class="nav-link {{ request()->routeIs('admin.registry.*') ? 'active' : '' }}" href="{{ route('admin.registry.index') }}">Registre des inscriptions</a>
-                <a class="nav-link {{ request()->routeIs('admin.news.*') ? 'active' : '' }}" href="{{ route('admin.news.index') }}">Actualites</a>
-                <a class="nav-link {{ request()->routeIs('admin.publications.*') && ! request('type') ? 'active' : '' }}" href="{{ route('admin.publications.index') }}">Publications</a>
-                <a class="nav-link {{ request()->routeIs('admin.graduations.*') ? 'active' : '' }}" href="{{ route('admin.graduations.index') }}">Diplomes</a>
-                <a class="nav-link {{ request()->routeIs('admin.publications.*') && request('type') === 'Frais' ? 'active' : '' }}" href="{{ route('admin.publications.index', ['type' => 'Frais']) }}">Frais</a>
-                <a class="nav-link {{ request()->routeIs('admin.publications.*') && request('type') === 'Ressource' ? 'active' : '' }}" href="{{ route('admin.publications.index', ['type' => 'Ressource']) }}">Ressources</a>
-                <a class="nav-link {{ request()->routeIs('admin.publications.*') && request('type') === 'Alumni' ? 'active' : '' }}" href="{{ route('admin.publications.index', ['type' => 'Alumni']) }}">Alumni</a>
-                <a class="nav-link {{ request()->routeIs('admin.events.*') ? 'active' : '' }}" href="{{ route('admin.events.index') }}">Evenements</a>
-                <a class="nav-link {{ request()->routeIs('admin.messages.*') ? 'active' : '' }}" href="{{ route('admin.messages.index') }}">Messages</a>
-                <a class="nav-link {{ request()->routeIs('admin.student-comments.*') ? 'active' : '' }}" href="{{ route('admin.student-comments.index') }}">Commentaires etudiants</a>
-                <a class="nav-link {{ request()->routeIs('admin.production.*') ? 'active' : '' }}" href="{{ route('admin.production.index') }}">Production</a>
+                @php
+                    $navGroups = config('isc_site.admin_nav', []);
+                    $isActive = function (array $item): bool {
+                        $patterns = (array) ($item['active'] ?? $item['route']);
+                        $matchesRoute = collect($patterns)->contains(fn (string $pattern): bool => request()->routeIs($pattern));
+
+                        if (! $matchesRoute) {
+                            return false;
+                        }
+
+                        foreach (($item['query'] ?? []) as $key => $expected) {
+                            $current = request()->query($key);
+
+                            if (is_array($expected)) {
+                                if (! in_array($current, $expected, true)) {
+                                    return false;
+                                }
+                            } elseif ($expected === null) {
+                                if ($current !== null) {
+                                    return false;
+                                }
+                            } elseif ($current !== $expected) {
+                                return false;
+                            }
+                        }
+
+                        return true;
+                    };
+                @endphp
+
+                @foreach ($navGroups as $group)
+                    <div class="nav-section-title">{{ $group['label'] }}</div>
+                    @foreach ($group['items'] as $item)
+                        <a class="nav-link {{ $isActive($item) ? 'active' : '' }}" href="{{ route($item['route'], $item['params'] ?? []) }}">{{ $item['label'] }}</a>
+                    @endforeach
+                @endforeach
             </nav>
         </aside>
         <main class="admin-main">

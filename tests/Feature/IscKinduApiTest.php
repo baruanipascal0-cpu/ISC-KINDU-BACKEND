@@ -32,8 +32,8 @@ class IscKinduApiTest extends TestCase
 
         $this->getJson('/api/sections')
             ->assertOk()
-            ->assertJsonFragment(['name' => 'Gestion informatique'])
-            ->assertJsonFragment(['name' => 'Comptabilite et finances']);
+            ->assertJsonFragment(['name' => 'Sciences et Technologies'])
+            ->assertJsonFragment(['name' => 'Systemes Informatiques']);
 
         $this->getJson('/api/home/cards')
             ->assertOk()
@@ -71,8 +71,8 @@ class IscKinduApiTest extends TestCase
         $this->withToken($token)->postJson('/api/inscriptions', [
             'academic_year' => '2026-2027',
             'level' => 'L1',
-            'section' => 'Gestion informatique',
-            'program' => 'Informatique de gestion',
+            'section' => 'Sciences et Technologies',
+            'program' => 'Systemes Informatiques',
             'last_name' => 'Candidat',
             'post_name' => 'Postnom',
             'first_name' => 'Demo',
@@ -91,8 +91,8 @@ class IscKinduApiTest extends TestCase
             ->assertJsonPath('data.status', 'submitted');
 
         $this->withToken($token)->postJson('/api/inscriptions', [
-            'section' => 'Gestion informatique',
-            'program' => 'Informatique de gestion',
+            'section' => 'Sciences et Technologies',
+            'program' => 'Systemes Informatiques',
             'last_name' => 'Candidat',
             'first_name' => 'Demo',
             'email' => 'candidat.demo@isc-kindu.test',

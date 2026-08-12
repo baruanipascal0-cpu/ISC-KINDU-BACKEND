@@ -1,7 +1,7 @@
 @extends('admin.layout')
 
 @section('title', $publication->exists ? 'Modifier une publication' : 'Nouvelle publication')
-@section('subtitle', 'Publier les documents visibles dans ressources, diplomes et publications')
+@section('subtitle', 'Publier un contenu lie aux pages Documents, Frais, Recherche, Opportunites ou Alumni')
 
 @section('content')
     <form class="card" method="post" enctype="multipart/form-data" action="{{ $publication->exists ? route('admin.publications.update', $publication) : route('admin.publications.store') }}">
@@ -21,8 +21,12 @@
             <div class="field">
                 <label for="type">Type</label>
                 <select id="type" name="type">
-                    @foreach (['Document', 'Communique', 'Frais', 'Article', 'Ressource', 'Bibliotheque', 'These', 'Centre de recherche', 'Projet', 'Recherche', 'Travail etudiant', 'Travail enseignant', 'Opportunite', 'Offre', 'Emploi', 'Stage', 'In memoriam', 'Alumni'] as $type)
-                        <option value="{{ $type }}" @selected(old('type', $publication->type) === $type)>{{ $type }}</option>
+                    @foreach ($publicationTypeGroups as $groupLabel => $items)
+                        <optgroup label="{{ $groupLabel }}">
+                            @foreach ($items as $type)
+                                <option value="{{ $type }}" @selected(old('type', $publication->type) === $type)>{{ $type }}</option>
+                            @endforeach
+                        </optgroup>
                     @endforeach
                 </select>
             </div>

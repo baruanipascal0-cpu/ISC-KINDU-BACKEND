@@ -1,17 +1,32 @@
 @extends('admin.layout')
 
-@section('title', $type ? $type : 'Publications')
-@section('subtitle', $type ? 'Contenus de type '.$type.' visibles sur le site' : 'Documents, ressources, communiques et diplomes')
+@section('title', $type ? $type : 'Publications du site')
+@section('subtitle', $type ? 'Contenus de type '.$type.' relies a la structure ISC Kindu' : 'Documents, frais, recherche, opportunites et autres contenus publics')
 
 @section('content')
+    @php
+        $publicUrl = function ($publication): string {
+            return match ($publication->type) {
+                'Frais' => '/nos-frais.html',
+                'Diplome' => '/nos-diplomes.html',
+                'Alumni' => '/page/alumni.html',
+                'Opportunite', 'Offre', 'Emploi', 'Stage' => '/travailler-a-isc/opportunites.html',
+                'Article', 'Article scientifique', 'These', 'Formation enseignant', 'Conference', 'Seminaire', 'Centre de recherche', 'Projet', 'Recherche', 'Hackathon', 'Realisation etudiant', 'Travail Licence', 'Travail Master', 'Travail etudiant', 'Travail enseignant', 'Stage academique' => '/services-a-la-societe.html',
+                default => '/documents.html',
+            };
+        };
+    @endphp
+
     <section class="card">
         <div class="card-header">
             <div>
-                <h2 class="card-title">{{ $type ? $type : 'Publications' }}</h2>
+                <h2 class="card-title">{{ $type ? $type : 'Toutes les publications' }}</h2>
                 <div class="admin-tabs">
                     <a href="{{ route('admin.publications.index') }}" @class(['active' => ! $type])>Toutes</a>
-                    @foreach (['Communique', 'Document', 'Frais', 'Article', 'Ressource', 'Bibliotheque', 'These', 'Centre de recherche', 'Projet', 'Recherche', 'Travail etudiant', 'Travail enseignant', 'Opportunite', 'Offre', 'Emploi', 'Stage', 'In memoriam', 'Alumni'] as $item)
-                        <a href="{{ route('admin.publications.index', ['type' => $item]) }}" @class(['active' => $type === $item])>{{ $item }}</a>
+                    @foreach ($publicationTypeGroups as $groupLabel => $items)
+                        @foreach ($items as $item)
+                            <a href="{{ route('admin.publications.index', ['type' => $item]) }}" @class(['active' => $type === $item])>{{ $item }}</a>
+                        @endforeach
                     @endforeach
                 </div>
             </div>
@@ -31,7 +46,7 @@
                                 <div class="actions">
                                     <a class="btn btn-muted" href="{{ route('admin.publications.edit', $publication) }}">Modifier</a>
                                     @if ($publication->is_published)
-                                        <a class="btn btn-secondary" href="{{ $publication->type === 'Frais' ? '/nos-frais.html' : '/publications/'.$publication->slug }}" target="_blank">Site</a>
+                                        <a class="btn btn-secondary" href="{{ $publicUrl($publication) }}" target="_blank">Site</a>
                                     @endif
                                     <form method="post" action="{{ route('admin.publications.destroy', $publication) }}" onsubmit="return confirm('Supprimer cette publication ?')">
                                         @csrf

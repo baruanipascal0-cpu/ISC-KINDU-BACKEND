@@ -23,6 +23,7 @@ class PublicationController extends Controller
                 ->paginate(20)
                 ->withQueryString(),
             'type' => $type,
+            'publicationTypeGroups' => config('isc_site.publication_type_groups', []),
         ]);
     }
 
@@ -30,10 +31,11 @@ class PublicationController extends Controller
     {
         return view('admin.publications.form', [
             'publication' => new Publication([
-                'type' => $request->query('type', 'Communique'),
+                'type' => $request->query('type', 'Document'),
                 'is_published' => true,
                 'published_at' => now(),
             ]),
+            'publicationTypeGroups' => config('isc_site.publication_type_groups', []),
         ]);
     }
 
@@ -48,7 +50,10 @@ class PublicationController extends Controller
 
     public function edit(Publication $publication): View
     {
-        return view('admin.publications.form', compact('publication'));
+        return view('admin.publications.form', [
+            'publication' => $publication,
+            'publicationTypeGroups' => config('isc_site.publication_type_groups', []),
+        ]);
     }
 
     public function update(Request $request, Publication $publication): RedirectResponse
