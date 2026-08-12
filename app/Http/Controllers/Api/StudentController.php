@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\Payment;
+use App\Models\Enrollment;
 use App\Models\InstitutionNotification;
 use App\Models\StudentComment;
 use App\Models\StudentDocument;
@@ -20,6 +21,12 @@ class StudentController extends ApiController
         $student = $user->studentProfile()
             ->with(['section', 'program', 'enrollments.academicYear', 'enrollments.section', 'enrollments.program', 'enrollments.level', 'enrollments.promotion'])
             ->first();
+        $enrollment = $student?->enrollments?->first();
+        $registrationSheet = $user->documents()
+            ->where('type', 'fiche-inscription')
+            ->latest('issued_at')
+            ->latest()
+            ->first();
 
         return $this->ok([
             'student' => [
@@ -31,14 +38,15 @@ class StudentController extends ApiController
                 'phone' => $user->phone,
             ],
             'application' => $application,
-            'enrollment' => $student?->enrollments?->first(),
+            'enrollment' => $this->enrollmentResource($enrollment),
+            'registration_sheet' => $this->registrationSheetResource($registrationSheet, $enrollment),
             'summary' => [
                 'payments_pending' => $user->payments()->where('status', 'pending')->count(),
                 'documents_available' => $user->documents()->where('status', 'available')->count(),
                 'comments_open' => $user->comments()->where('status', 'open')->count(),
             ],
             'payments' => $user->payments()->latest()->take(5)->get(),
-            'documents' => $user->documents()->latest()->take(5)->get()->map(fn (StudentDocument $document) => $this->documentResource($document)),
+            'documents' => $user->documents()->latest()->take(12)->get()->map(fn (StudentDocument $document) => $this->documentResource($document)),
             'comments' => $user->comments()->latest()->take(5)->get(),
             'notifications' => $user->institutionNotifications()->latest()->take(5)->get()->map(fn (InstitutionNotification $notification) => $this->notificationResource($notification)),
         ]);
@@ -144,6 +152,49 @@ class StudentController extends ApiController
                 ->get()
                 ->map(fn (InstitutionNotification $notification) => $this->notificationResource($notification))
         );
+    }
+
+    private function enrollmentResource(?Enrollment $enrollment): ?array
+    {
+        if (! $enrollment) {
+            return null;
+        }
+
+        return [
+            'id' => $enrollment->id,
+            'enrollment_number' => $enrollment->enrollment_number,
+            'type' => $enrollment->type,
+            'status' => $enrollment->status,
+            'enrolled_on' => $enrollment->enrolled_on?->toDateString(),
+            'academic_year' => $enrollment->academicYear,
+            'section' => $enrollment->section,
+            'program' => $enrollment->program,
+            'level' => $enrollment->level,
+            'promotion' => $enrollment->promotion,
+            'fiche_path' => $enrollment->fiche_path,
+            'fiche_url' => $enrollment->fiche_path ? asset('storage/'.$enrollment->fiche_path) : null,
+        ];
+    }
+
+    private function registrationSheetResource(?StudentDocument $document, ?Enrollment $enrollment): ?array
+    {
+        if ($document) {
+            return $this->documentResource($document);
+        }
+
+        if (! $enrollment?->fiche_path) {
+            return null;
+        }
+
+        return [
+            'id' => null,
+            'name' => 'Fiche d inscription',
+            'type' => 'fiche-inscription',
+            'status' => $enrollment->status ?: 'available',
+            'issued_at' => $enrollment->enrolled_on?->toIso8601String(),
+            'file_path' => $enrollment->fiche_path,
+            'file_url' => asset('storage/'.$enrollment->fiche_path),
+        ];
     }
 
     private function documentResource(StudentDocument $document): array

@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Student;
+use App\Models\StudentDocument;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -157,6 +158,14 @@ class IscKinduApiTest extends TestCase
             'phone' => $user->phone,
             'status' => 'active',
         ]);
+        StudentDocument::create([
+            'user_id' => $user->id,
+            'name' => 'Fiche d inscription',
+            'type' => 'fiche-inscription',
+            'file_path' => 'enrollments/fiche-alice.html',
+            'status' => 'available',
+            'issued_at' => now(),
+        ]);
 
         $this->postJson('/api/auth/register', [
             'matricule' => 'ISC-2026-0099',
@@ -179,6 +188,8 @@ class IscKinduApiTest extends TestCase
             ->getJson('/api/student/dashboard')
             ->assertOk()
             ->assertJsonPath('data.student.matricule', 'ISC-2026-0099')
-            ->assertJsonPath('data.student.email', 'alice.kalume.account@isc-kindu.test');
+            ->assertJsonPath('data.student.email', 'alice.kalume.account@isc-kindu.test')
+            ->assertJsonPath('data.registration_sheet.type', 'fiche-inscription')
+            ->assertJsonPath('data.registration_sheet.file_url', asset('storage/enrollments/fiche-alice.html'));
     }
 }
