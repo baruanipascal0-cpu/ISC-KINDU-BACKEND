@@ -133,6 +133,9 @@ return [
             'items' => [
                 ['label' => 'Demandes inscription', 'route' => 'admin.admissions.index', 'active' => 'admin.admissions.*'],
                 ['label' => 'Registre inscriptions', 'route' => 'admin.registry.index', 'active' => 'admin.registry.*'],
+                ['label' => 'Paiements etudiants', 'route' => 'admin.student-payments.index', 'active' => 'admin.student-payments.*'],
+                ['label' => 'Documents etudiants', 'route' => 'admin.student-documents.index', 'active' => 'admin.student-documents.*'],
+                ['label' => 'Notifications etudiants', 'route' => 'admin.student-notifications.index', 'active' => 'admin.student-notifications.*'],
                 ['label' => 'Messages', 'route' => 'admin.messages.index', 'active' => 'admin.messages.*'],
                 ['label' => 'Commentaires etudiants', 'route' => 'admin.student-comments.index', 'active' => 'admin.student-comments.*'],
                 ['label' => 'Production', 'route' => 'admin.production.index', 'active' => 'admin.production.*'],
@@ -177,6 +180,7 @@ return [
             'actions' => [
                 ['label' => 'Demandes', 'route' => 'admin.admissions.index'],
                 ['label' => 'Registre', 'route' => 'admin.registry.index'],
+                ['label' => 'Paiements', 'route' => 'admin.student-payments.index'],
                 ['label' => 'Documents inscription', 'route' => 'admin.publications.index', 'params' => ['type' => 'Bulletin Licence']],
             ],
         ],
@@ -206,6 +210,7 @@ return [
             'actions' => [
                 ['label' => 'Opportunites', 'route' => 'admin.publications.index', 'params' => ['type' => 'Opportunite']],
                 ['label' => 'Alumni', 'route' => 'admin.publications.index', 'params' => ['type' => 'Alumni']],
+                ['label' => 'Documents etudiants', 'route' => 'admin.student-documents.index'],
                 ['label' => 'Commentaires', 'route' => 'admin.student-comments.index'],
             ],
         ],

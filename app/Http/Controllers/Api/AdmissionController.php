@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Services\AdmissionWorkflowService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
@@ -541,7 +542,7 @@ class AdmissionController extends ApiController
                 'name' => $document->name,
                 'status' => $document->status,
                 'type' => $document->documentType?->slug,
-                'file_url' => $document->file_path ? asset('storage/'.$document->file_path) : null,
+                'file_url' => $this->publicUrl($document->file_path),
                 'review_note' => $document->review_note,
             ])->values(),
             'student' => $application->student ? [
@@ -552,9 +553,7 @@ class AdmissionController extends ApiController
             'enrollment' => $application->student?->enrollments?->first() ? [
                 'id' => $application->student->enrollments->first()->id,
                 'enrollment_number' => $application->student->enrollments->first()->enrollment_number,
-                'fiche_url' => $application->student->enrollments->first()->fiche_path
-                    ? asset('storage/'.$application->student->enrollments->first()->fiche_path)
-                    : null,
+                'fiche_url' => $this->publicUrl($application->student->enrollments->first()->fiche_path),
             ] : null,
             'submitted_at' => $application->submitted_at?->toIso8601String(),
             'reviewed_at' => $application->reviewed_at?->toIso8601String(),
@@ -575,5 +574,18 @@ class AdmissionController extends ApiController
         $year = (int) now()->format('Y');
 
         return $year.'-'.($year + 1);
+    }
+
+    private function publicUrl(?string $path): ?string
+    {
+        if (! $path) {
+            return null;
+        }
+
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            return $path;
+        }
+
+        return Storage::disk('public')->url(ltrim($path, '/'));
     }
 }

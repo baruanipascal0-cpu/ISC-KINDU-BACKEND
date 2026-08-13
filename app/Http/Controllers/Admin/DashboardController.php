@@ -18,6 +18,9 @@ use App\Models\Section;
 use App\Models\StaffMember;
 use App\Models\Student;
 use App\Models\StudentComment;
+use App\Models\InstitutionNotification;
+use App\Models\Payment;
+use App\Models\StudentDocument;
 use App\Models\User;
 use Illuminate\View\View;
 
@@ -35,6 +38,9 @@ class DashboardController extends Controller
                 'Enseignants' => StaffMember::count(),
                 'Filieres' => Program::where('is_active', true)->count(),
                 'Inscriptions' => AdmissionApplication::count(),
+                'Paiements en attente' => Payment::whereIn('status', ['pending', 'submitted'])->count(),
+                'Documents etudiants' => StudentDocument::count(),
+                'Notifications' => InstitutionNotification::count(),
                 'Messages nouveaux' => ContactMessage::where('status', 'new')->count(),
             ],
             'siteModules' => config('isc_site.site_modules', []),

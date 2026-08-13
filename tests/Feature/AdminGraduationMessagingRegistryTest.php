@@ -6,14 +6,17 @@ use App\Models\AcademicYear;
 use App\Models\ContactMessage;
 use App\Models\Enrollment;
 use App\Models\GraduationList;
+use App\Models\Payment;
 use App\Models\Program;
 use App\Models\Promotion;
+use App\Models\Receipt;
 use App\Models\Section;
 use App\Models\Student;
 use App\Models\StudentDocument;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class AdminGraduationMessagingRegistryTest extends TestCase
@@ -137,6 +140,86 @@ class AdminGraduationMessagingRegistryTest extends TestCase
             ->getJson('/api/student/documents')
             ->assertOk()
             ->assertJsonFragment(['file_url' => asset('storage/enrollments/fiche-test.html')]);
+    }
+
+    public function test_admin_can_publish_student_wallet_data(): void
+    {
+        $this->seed();
+        Storage::fake('public');
+
+        $admin = User::where('email', 'admin@isc-kindu.test')->firstOrFail();
+        $studentUser = User::where('email', 'etudiant@isc-kindu.test')->firstOrFail();
+
+        $this->actingAs($admin)->post(route('admin.student-payments.store'), [
+            'user_id' => $studentUser->id,
+            'reference' => 'PAY-TEST-001',
+            'label' => 'Frais academiques',
+            'amount' => 120,
+            'paid_amount' => 120,
+            'currency' => 'USD',
+            'status' => 'paid',
+            'receipt_number' => 'REC-TEST-001',
+            'receipt_amount' => 120,
+            'receipt_file' => UploadedFile::fake()->createWithContent('recu.pdf', '%PDF-1.4 recu'),
+        ])->assertRedirect(route('admin.student-payments.index'));
+
+        $payment = Payment::where('reference', 'PAY-TEST-001')->firstOrFail();
+        $receipt = Receipt::where('payment_id', $payment->id)->firstOrFail();
+
+        Storage::disk('public')->assertExists($receipt->file_path);
+
+        $this->actingAs($admin)->post(route('admin.student-documents.store'), [
+            'user_id' => $studentUser->id,
+            'name' => 'Attestation de frequentation',
+            'type' => 'attestation',
+            'status' => 'available',
+            'file' => UploadedFile::fake()->createWithContent('attestation.pdf', '%PDF-1.4 attestation'),
+        ])->assertRedirect(route('admin.student-documents.index'));
+
+        $document = StudentDocument::where('name', 'Attestation de frequentation')->firstOrFail();
+        Storage::disk('public')->assertExists($document->file_path);
+
+        $this->actingAs($admin)->post(route('admin.student-notifications.store'), [
+            'user_id' => $studentUser->id,
+            'type' => 'document',
+            'title' => 'Document disponible',
+            'message' => 'Votre attestation est disponible dans votre espace.',
+        ])->assertRedirect(route('admin.student-notifications.index'));
+
+        $this->assertDatabaseHas('institution_notifications', [
+            'user_id' => $studentUser->id,
+            'title' => 'Document disponible',
+        ]);
+
+        $this->actingAs($studentUser, 'sanctum')
+            ->getJson('/api/student/dashboard')
+            ->assertOk()
+            ->assertJsonFragment(['label' => 'Frais academiques'])
+            ->assertJsonFragment(['receipt_number' => 'REC-TEST-001'])
+            ->assertJsonFragment(['name' => 'Attestation de frequentation'])
+            ->assertJsonFragment(['title' => 'Document disponible']);
+    }
+
+    public function test_admin_notification_requires_student_when_not_broadcast(): void
+    {
+        $this->seed();
+
+        $admin = User::where('email', 'admin@isc-kindu.test')->firstOrFail();
+
+        $this->actingAs($admin)
+            ->from(route('admin.student-notifications.create'))
+            ->post(route('admin.student-notifications.store'), [
+                'send_to_all' => '0',
+                'type' => 'info',
+                'title' => 'Notification sans destinataire',
+                'message' => 'Ce message ne doit pas etre cree sans etudiant.',
+            ])
+            ->assertRedirect(route('admin.student-notifications.create'))
+            ->assertSessionHasErrors('user_id');
+
+        $this->assertDatabaseMissing('institution_notifications', [
+            'title' => 'Notification sans destinataire',
+        ]);
     }
 
     public function test_registry_shows_all_enrollments_ordered_by_promotion_and_program(): void

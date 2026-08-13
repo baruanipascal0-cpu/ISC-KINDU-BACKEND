@@ -9,6 +9,7 @@ use App\Models\StudentComment;
 use App\Models\StudentDocument;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class StudentController extends ApiController
 {
@@ -45,7 +46,7 @@ class StudentController extends ApiController
                 'documents_available' => $user->documents()->where('status', 'available')->count(),
                 'comments_open' => $user->comments()->where('status', 'open')->count(),
             ],
-            'payments' => $user->payments()->latest()->take(5)->get(),
+            'payments' => $user->payments()->with('receipts')->latest()->take(5)->get()->map(fn (Payment $payment) => $this->paymentResource($payment)),
             'documents' => $user->documents()->latest()->take(12)->get()->map(fn (StudentDocument $document) => $this->documentResource($document)),
             'comments' => $user->comments()->latest()->take(5)->get(),
             'notifications' => $user->institutionNotifications()->latest()->take(5)->get()->map(fn (InstitutionNotification $notification) => $this->notificationResource($notification)),
@@ -58,7 +59,9 @@ class StudentController extends ApiController
             $request->user()
                 ->payments()
                 ->latest()
+                ->with('receipts')
                 ->get()
+                ->map(fn (Payment $payment) => $this->paymentResource($payment))
         );
     }
 
@@ -172,7 +175,7 @@ class StudentController extends ApiController
             'level' => $enrollment->level,
             'promotion' => $enrollment->promotion,
             'fiche_path' => $enrollment->fiche_path,
-            'fiche_url' => $enrollment->fiche_path ? asset('storage/'.$enrollment->fiche_path) : null,
+            'fiche_url' => $this->publicUrl($enrollment->fiche_path),
         ];
     }
 
@@ -193,7 +196,33 @@ class StudentController extends ApiController
             'status' => $enrollment->status ?: 'available',
             'issued_at' => $enrollment->enrolled_on?->toIso8601String(),
             'file_path' => $enrollment->fiche_path,
-            'file_url' => asset('storage/'.$enrollment->fiche_path),
+            'file_url' => $this->publicUrl($enrollment->fiche_path),
+        ];
+    }
+
+    private function paymentResource(Payment $payment): array
+    {
+        return [
+            'id' => $payment->id,
+            'reference' => $payment->reference,
+            'label' => $payment->label,
+            'amount' => $payment->amount,
+            'paid_amount' => $payment->paid_amount,
+            'currency' => $payment->currency,
+            'status' => $payment->status,
+            'due_date' => $payment->due_date?->toDateString(),
+            'paid_at' => $payment->paid_at?->toIso8601String(),
+            'proof_path' => $payment->proof_path,
+            'proof_url' => $this->publicUrl($payment->proof_path),
+            'receipts' => $payment->receipts->map(fn ($receipt) => [
+                'id' => $receipt->id,
+                'receipt_number' => $receipt->receipt_number,
+                'amount' => $receipt->amount,
+                'currency' => $receipt->currency,
+                'issued_at' => $receipt->issued_at?->toIso8601String(),
+                'file_path' => $receipt->file_path,
+                'file_url' => $this->publicUrl($receipt->file_path),
+            ])->values(),
         ];
     }
 
@@ -206,7 +235,7 @@ class StudentController extends ApiController
             'status' => $document->status,
             'issued_at' => $document->issued_at?->toIso8601String(),
             'file_path' => $document->file_path,
-            'file_url' => $document->file_path ? asset('storage/'.$document->file_path) : null,
+            'file_url' => $this->publicUrl($document->file_path),
         ];
     }
 
@@ -220,5 +249,18 @@ class StudentController extends ApiController
             'read_at' => $notification->read_at?->toIso8601String(),
             'created_at' => $notification->created_at?->toIso8601String(),
         ];
+    }
+
+    private function publicUrl(?string $path): ?string
+    {
+        if (! $path) {
+            return null;
+        }
+
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            return $path;
+        }
+
+        return Storage::disk('public')->url(ltrim($path, '/'));
     }
 }

@@ -18,6 +18,9 @@ use App\Http\Controllers\Admin\SectionController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\StaffMemberController;
 use App\Http\Controllers\Admin\StudentCommentController;
+use App\Http\Controllers\Admin\StudentDocumentController;
+use App\Http\Controllers\Admin\StudentNotificationController;
+use App\Http\Controllers\Admin\StudentPaymentController;
 use App\Http\Controllers\FrontendController;
 use App\Http\Controllers\PublicStorageController;
 use Illuminate\Support\Facades\Route;
@@ -77,6 +80,18 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::patch('messages/{message}', [MessageController::class, 'update'])->name('messages.update');
     Route::get('commentaires-etudiants', [StudentCommentController::class, 'index'])->name('student-comments.index');
     Route::patch('commentaires-etudiants/{comment}', [StudentCommentController::class, 'update'])->name('student-comments.update');
+    Route::resource('paiements-etudiants', StudentPaymentController::class)
+        ->parameters(['paiements-etudiants' => 'payment'])
+        ->names('student-payments')
+        ->except(['show']);
+    Route::resource('documents-etudiants', StudentDocumentController::class)
+        ->parameters(['documents-etudiants' => 'document'])
+        ->names('student-documents')
+        ->except(['show']);
+    Route::resource('notifications-etudiants', StudentNotificationController::class)
+        ->parameters(['notifications-etudiants' => 'notification'])
+        ->names('student-notifications')
+        ->except(['show']);
     Route::get('production', ProductionController::class)->name('production.index');
 });
 

@@ -305,10 +305,48 @@ Modules :
 
 - `Demandes inscription` : dossiers envoyes par les candidats/etudiants.
 - `Registre inscriptions` : registre interne des inscriptions.
+- `Paiements etudiants` : frais, preuves de paiement et recus visibles dans l'espace etudiant.
+- `Documents etudiants` : fiches, attestations, releves, bulletins ou autres fichiers affectes a un etudiant.
+- `Notifications etudiants` : messages publies dans le tableau de bord etudiant.
 - `Messages` : messages envoyes depuis le formulaire contact.
 - `Commentaires etudiants` : retours venant de l'espace etudiant.
 
 Ces modules servent au suivi administratif. Ils ne changent pas directement les textes publics du site.
+
+## Donnees de l'espace etudiant
+
+Menu admin : `Inscriptions et contact > Paiements etudiants / Documents etudiants / Notifications etudiants`
+
+Ces trois modules alimentent directement l'interface `etudiant.html` via `/api/student/dashboard`, `/api/student/payments`, `/api/student/documents` et `/api/student/notifications`.
+
+Pour publier un paiement :
+
+1. Aller dans `Paiements etudiants`.
+2. Choisir l'etudiant, le libelle, le montant, la devise et le statut.
+3. Ajouter la preuve ou le recu si le fichier existe deja.
+4. Enregistrer.
+
+Le recu joint devient telechargeable par l'etudiant dans son interface.
+
+Pour publier une fiche d'inscription ou un autre document :
+
+1. Aller dans `Documents etudiants`.
+2. Choisir l'etudiant.
+3. Choisir le type, par exemple `fiche-inscription`, `attestation`, `releve` ou `bulletin`.
+4. Ajouter le fichier PDF.
+5. Mettre le statut `available`.
+6. Enregistrer.
+
+La fiche d'inscription personnelle de l'etudiant apparait ensuite dans son tableau de bord. Les bulletins publics d'inscription restent dans `Publications du site > Documents`; les fiches propres a chaque etudiant se gerent ici.
+
+Pour envoyer une notification :
+
+1. Aller dans `Notifications etudiants`.
+2. Choisir un etudiant, ou cocher l'envoi a tous les etudiants actifs.
+3. Remplir le titre, le message, le type et la priorite.
+4. Enregistrer.
+
+La notification apparait dans le tableau de bord etudiant sans modifier les pages publiques du site.
 
 ## Comment verifier si une publication sort sur le frontend
 
