@@ -108,7 +108,8 @@ return [
             'label' => 'Structure du site',
             'items' => [
                 ['label' => 'Pages du site', 'route' => 'admin.pages.index', 'active' => 'admin.pages.*'],
-                ['label' => 'Accueil', 'route' => 'admin.content-blocks.index', 'params' => ['group' => 'home_slide'], 'active' => 'admin.content-blocks.*', 'query' => ['group' => ['home_slide', 'home_card']]],
+                ['label' => 'Bannieres accueil', 'route' => 'admin.banners.index', 'active' => 'admin.banners.*'],
+                ['label' => 'Cartes accueil', 'route' => 'admin.content-blocks.index', 'params' => ['group' => 'home_card'], 'active' => 'admin.content-blocks.*', 'query' => ['group' => ['home_card']]],
                 ['label' => 'Institution et blocs', 'route' => 'admin.content-blocks.index', 'params' => ['group' => 'institution_service'], 'active' => 'admin.content-blocks.*', 'query' => ['group' => ['institution_block', 'institution_service', 'home_service', 'service_page']]],
                 ['label' => 'Formations et filieres', 'route' => 'admin.sections.index', 'active' => 'admin.sections.*'],
                 ['label' => 'Enseignants', 'route' => 'admin.staff.index', 'active' => 'admin.staff.*'],
@@ -149,7 +150,7 @@ return [
             'description' => 'Diaporama, cartes de formation, blocs d appel et liens principaux de la page d accueil.',
             'public_url' => '/index.html',
             'actions' => [
-                ['label' => 'Diaporama', 'route' => 'admin.content-blocks.index', 'params' => ['group' => 'home_slide']],
+                ['label' => 'Diaporama', 'route' => 'admin.banners.index'],
                 ['label' => 'Cartes accueil', 'route' => 'admin.content-blocks.index', 'params' => ['group' => 'home_card']],
                 ['label' => 'Actualites', 'route' => 'admin.news.index'],
             ],

@@ -23,6 +23,27 @@ Une donnee n'apparait sur le site public que si :
 
 Apres une modification, attendre parfois 30 secondes a 2 minutes selon le cache/deploiement.
 
+## Bannieres de la page d accueil
+
+Menu admin : `Structure du site > Bannieres accueil`
+
+Alimente :
+
+- Diaporama de `index.html`
+- API `/api/home/slides`
+
+Procedure :
+
+1. Cliquer `Nouvelle banniere`.
+2. Ajouter `Titre`, `Sous-titre ou badge`, `Texte court`.
+3. Ajouter une image ou une URL image.
+4. Ajouter un `Lien du bouton` si la banniere doit ouvrir une page du site.
+5. Regler `Ordre`.
+6. Cocher `Visible sur le site`.
+7. Enregistrer.
+
+Le lien peut pointer vers une page normale (`/blog.html`, `/inscription.html`) ou vers une page detail (`/actualites/slug-de-l-actualite`). Le frontend convertit ces liens vers la bonne page locale.
+
 ## Parametres institution : contacts du site
 
 Menu admin : `Pilotage > Parametres institution`

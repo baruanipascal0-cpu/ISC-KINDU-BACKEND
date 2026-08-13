@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AdmissionController;
 use App\Http\Controllers\Admin\AuthController;
+use App\Http\Controllers\Admin\BannerController;
 use App\Http\Controllers\Admin\ContentBlockController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\EnrollmentRegistryController;
@@ -42,6 +43,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::resource('blocs-site', ContentBlockController::class)
         ->parameters(['blocs-site' => 'contentBlock'])
         ->names('content-blocks')
+        ->except(['show']);
+    Route::resource('bannieres', BannerController::class)
+        ->parameters(['bannieres' => 'banner'])
+        ->names('banners')
         ->except(['show']);
     Route::resource('medias', MediaController::class)
         ->parameters(['medias' => 'media'])

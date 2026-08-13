@@ -24,6 +24,7 @@ class AdminAndPublicPagesTest extends TestCase
             '/admin',
             '/admin/parametres',
             '/admin/navigation',
+            '/admin/bannieres',
             '/admin/blocs-site',
             '/admin/medias',
             '/admin/sections',
@@ -114,18 +115,53 @@ class AdminAndPublicPagesTest extends TestCase
         );
     }
 
+    public function test_admin_can_manage_home_banners_for_public_api(): void
+    {
+        $admin = User::where('role', 'admin')->firstOrFail();
+
+        $this->actingAs($admin)
+            ->post(route('admin.banners.store'), [
+                'title' => 'Rentree academique ISC Kindu',
+                'subtitle' => 'Communique officiel',
+                'body' => 'Les inscriptions et publications importantes passent dans la banniere.',
+                'image_url' => 'https://cdn.example.test/banners/rentree.jpg',
+                'link_url' => '/actualites/rentree-academique',
+                'link_label' => 'Lire le communique',
+                'sort_order' => 1,
+                'is_active' => '1',
+            ])
+            ->assertRedirect(route('admin.banners.index'));
+
+        $this->assertDatabaseHas('content_blocks', [
+            'block_group' => 'home_slide',
+            'title' => 'Rentree academique ISC Kindu',
+            'image_url' => 'https://cdn.example.test/banners/rentree.jpg',
+        ]);
+
+        $this->getJson('/api/home/slides')
+            ->assertOk()
+            ->assertJsonFragment([
+                'title' => 'Rentree academique ISC Kindu',
+                'link_url' => '/actualites/rentree-academique',
+                'link_label' => 'Lire le communique',
+            ]);
+    }
+
     public function test_public_detail_pages_render_with_base_tag(): void
     {
         $this->get('/actualites/debut')
             ->assertOk()
+            ->assertSee('data-detail', false)
             ->assertSee('<base href="/">', false);
 
         $this->get('/publications/debut')
             ->assertOk()
+            ->assertSee('data-detail', false)
             ->assertSee('<base href="/">', false);
 
         $this->get('/evenements/debut')
             ->assertOk()
+            ->assertSee('data-detail', false)
             ->assertSee('<base href="/">', false);
     }
 

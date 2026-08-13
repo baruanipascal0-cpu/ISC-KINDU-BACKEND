@@ -55,31 +55,9 @@ class FrontendController extends Controller
     {
         $path = trim($path, '/');
 
-        if (preg_match('#^actualites/[^/]+$#', $path)) {
-            return 'blog.html';
-        }
-
-        if (preg_match('#^publications/[^/]+$#', $path)) {
-            return 'documents.html';
-        }
-
-        if (preg_match('#^frais/[^/]+$#', $path)) {
-            return 'nos-frais.html';
-        }
-
-        if (preg_match('#^evenements/[^/]+$#', $path)) {
-            return 'blog.html';
-        }
-
-        if (preg_match('#^diplomes/[^/]+$#', $path)) {
-            return 'nos-diplomes.html';
-        }
-
-        if (preg_match('#^palmares/[^/]+$#', $path)) {
-            return 'nos-palmares.html';
-        }
-
-        return null;
+        return preg_match('#^(actualites?|news|publications?|documents|frais|fees|evenements?|events|diplomes|palmares|graduation-lists|medias?|gallery|galerie|enseignants?|teachers|pages?)/[^/]+$#', $path)
+            ? 'detail.html'
+            : null;
     }
 
     private function legacyTemplate(string $path): ?string
