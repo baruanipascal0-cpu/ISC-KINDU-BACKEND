@@ -73,6 +73,12 @@ a {
     background: #071f41;
     color: #fff;
     padding: 22px;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 .brand {
@@ -103,8 +109,32 @@ a {
 
 .nav-list {
     display: grid;
+    align-content: start;
+    flex: 1 1 auto;
     gap: 6px;
     margin-top: 24px;
+    min-height: 0;
+    overflow-y: auto;
+    padding-right: 6px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(203, 213, 225, .72) transparent;
+}
+
+.nav-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.nav-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.nav-list::-webkit-scrollbar-thumb {
+    background: rgba(203, 213, 225, .45);
+    border-radius: 999px;
+}
+
+.nav-list::-webkit-scrollbar-thumb:hover {
+    background: rgba(203, 213, 225, .7);
 }
 
 .nav-section-title {
@@ -538,10 +568,13 @@ textarea {
 
     .sidebar {
         position: static;
+        height: auto;
+        overflow: visible;
     }
 
     .nav-list {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+        max-height: 46vh;
     }
 
     .nav-section-title {
